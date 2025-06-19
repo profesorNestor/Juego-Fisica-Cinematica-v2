@@ -1,0 +1,1640 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Academia Espacial: Física Interactiva</title>
+    
+    <!-- M A R C A C I Ó N: LIBRERÍAS EXTERNAS -->
+    <!-- Se incluyen las librerías necesarias para el funcionamiento del juego. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <!-- M A R C A C I Ó N: FUENTES PERSONALIZADAS -->
+    <!-- Se importan fuentes de Google Fonts para darle una estética de ciencia ficción. -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@400;600&family=Exo+2:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <!-- M A R C A C I Ó N: ESTILOS CSS -->
+    <!-- Hoja de estilos principal para la interfaz del juego. -->
+    <style>
+        /* D E C O R A C I Ó N: Variables de color para un tema cohesivo */
+        :root {
+            --primary-color: #00faff;
+            --secondary-color: #ff00ff;
+            --accent-color: #ffff00;
+            --background-dark: #0a0a1f;
+            --background-light: #1a1a3f;
+            --text-light: #ffffff;
+            --success-color: #00ff88;
+            --error-color: #ff4444;
+            --warning-color: #ffaa00;
+        }
+
+        html, body {
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            /* I N D I C A C I Ó N: Se permite el scroll vertical para mejorar la visualización en móviles */
+            overflow-x: hidden; 
+            font-family: 'Exo 2', sans-serif;
+            background: var(--background-dark);
+            color: var(--text-light);
+        }
+
+        .game-wrapper {
+            width: 100%; height: 100%; display: flex; flex-direction: column;
+            background: linear-gradient(135deg, var(--background-dark) 0%, #1a1a3f 50%, #0a0a1f 100%);
+        }
+
+        canvas {
+            flex-grow: 1;
+            touch-action: none;
+            display: block;
+            border-radius: 8px;
+            box-shadow: inset 0 0 50px rgba(0, 250, 255, 0.1);
+        }
+
+        .stats-bar, .controls-container {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary-color);
+            text-shadow: 0 0 5px var(--primary-color);
+            background: rgba(26, 26, 63, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 250, 255, 0.3);
+            padding: 15px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        /* D E C O R A C I Ó N: Animación de línea de escaneo para un look futurista */
+        .stats-bar::before, .controls-container::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(0, 250, 255, 0.1), transparent);
+            animation: scanline 3s infinite;
+            pointer-events: none;
+        }
+
+        @keyframes scanline {
+            0%, 100% { transform: translateX(-100%); }
+            50% { transform: translateX(100%); }
+        }
+
+        .stat, .control-group {
+            display: flex; align-items: center; gap: 10px;
+            padding: 8px 15px;
+            border-radius: 8px;
+            background: rgba(0, 250, 255, 0.05);
+            border: 1px solid rgba(0, 250, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .stat:hover, .control-group:hover {
+            background: rgba(0, 250, 255, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 250, 255, 0.3);
+        }
+
+        .topic-switcher {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+            width: 100%;
+        }
+
+        .topic-switcher label {
+            padding: 10px 15px;
+            border: 2px solid var(--primary-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            text-align: center;
+            background: rgba(0, 250, 255, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* D E C O R A C I Ó N: Efecto de barrido luminoso en los botones de tema */
+        .topic-switcher label::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; right: 0; bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(0, 250, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .topic-switcher label:hover::before {
+            left: 100%;
+        }
+
+        .topic-switcher input[type="checkbox"] { display: none; }
+
+        .topic-switcher input[type="checkbox"]:checked + label {
+            background: var(--primary-color);
+            color: var(--background-dark);
+            box-shadow: 0 0 20px var(--primary-color);
+            transform: scale(1.05);
+        }
+
+        .game-button {
+            font-family: 'Orbitron', sans-serif;
+            background: transparent;
+            /* I N D I C A C I Ó N: Color de texto cambiado a blanco para mejorar la legibilidad. */
+            color: var(--text-light); 
+            border: 2px solid var(--secondary-color);
+            border-radius: 8px;
+            padding: 12px 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+             /* I N D I C A C I Ó N: Sombra de texto eliminada en el estado inicial para mayor claridad. */
+            text-shadow: none;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .game-button::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; right: 0; bottom: 0;
+            background: var(--secondary-color);
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+
+        .game-button:hover::before, .game-button:active::before {
+            left: 0;
+        }
+
+        .game-button:hover, .game-button:active {
+            color: var(--text-light);
+            box-shadow: 0 0 25px var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .game-button:disabled {
+            background: transparent;
+            border-color: #555;
+            color: #555;
+            cursor: not-allowed;
+            text-shadow: none;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .game-button:disabled::before {
+            display: none;
+        }
+
+        .btn-success {
+            border-color: var(--success-color);
+        }
+        
+        /* I N D I C A C I Ó N: Añadido hover específico para el botón de éxito */
+        .btn-success:hover, .btn-success:active {
+            box-shadow: 0 0 25px var(--success-color);
+        }
+
+        .btn-success::before {
+            background: var(--success-color);
+        }
+
+        .btn-warning {
+            border-color: var(--warning-color);
+        }
+        
+        /* I N D I C A C I Ó N: Añadido hover específico para el botón de advertencia */
+        .btn-warning:hover, .btn-warning:active {
+            box-shadow: 0 0 25px var(--warning-color);
+        }
+
+        .btn-warning::before {
+            background: var(--warning-color);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.8);
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, rgba(26, 26, 63, 0.95), rgba(10, 10, 31, 0.95));
+            border: 2px solid var(--primary-color);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            width: 90%;
+            max-width: 600px;
+            color: var(--text-light);
+            box-shadow: 0 0 30px rgba(0, 250, 255, 0.5);
+            max-height: 85vh;
+            overflow-y: auto;
+            position: relative;
+            animation: modalAppear 0.3s ease;
+        }
+
+        @keyframes modalAppear {
+            from { opacity: 0; transform: scale(0.8) translateY(-50px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        /* D E C O R A C I Ó N: Borde animado para los modales */
+        .modal-content::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color), var(--accent-color), var(--primary-color));
+            background-size: 400%;
+            border-radius: 15px;
+            z-index: -1;
+            animation: borderGlow 5s linear infinite;
+        }
+
+        @keyframes borderGlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .modal-content h2 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            text-shadow: 0 0 10px var(--primary-color);
+        }
+
+        .option-button {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: var(--text-light);
+            width: 100%;
+            padding: 15px;
+            margin: 8px 0;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option-button::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; right: 0; bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(0, 250, 255, 0.3), transparent);
+            transition: left 0.3s ease;
+        }
+
+        .option-button:hover::before {
+            left: 100%;
+        }
+
+        .option-button:hover {
+            background-color: rgba(0, 250, 255, 0.1);
+            border-color: var(--primary-color);
+            transform: translateX(5px);
+        }
+
+        .option-button.selected {
+            background: var(--primary-color);
+            color: var(--background-dark);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 15px var(--primary-color);
+            font-weight: 600;
+        }
+
+        #solution-container {
+            margin-top: 25px;
+            padding: 20px;
+            border-top: 2px solid rgba(0, 250, 255, 0.3);
+            text-align: left;
+            font-family: 'Inter', sans-serif; /* Mejora de fuente para legibilidad */
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border: 1px solid rgba(0, 250, 255, 0.2);
+            font-size: 1.1em; /* Texto más grande para fórmulas */
+            line-height: 1.8;
+        }
+
+        #solution-container h4 {
+            color: var(--accent-color);
+            margin-bottom: 15px;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        #solution-container .formula {
+            background: rgba(0, 250, 255, 0.1);
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 3px solid var(--primary-color);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border-radius: 4px;
+            transition: width 0.5s ease;
+            box-shadow: 0 0 10px var(--primary-color);
+        }
+
+        .lives-container {
+            display: flex;
+            gap: 5px;
+        }
+
+        .heart {
+            color: #ff4444;
+            font-size: 1.2rem;
+            animation: heartbeat 2s infinite;
+            filter: drop-shadow(0 0 5px #ff4444);
+        }
+
+        .heart.lost {
+            color: #333;
+            animation: none;
+            filter: none;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .math-expression {
+            background: rgba(0, 250, 255, 0.1);
+            border: 1px solid rgba(0, 250, 255, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: 'Inter', sans-serif; /* Mejora de fuente para legibilidad */
+        }
+        
+        /* M A R C A C I Ó N: Estilo del pie de página galáctico (mejorado) */
+        .galactic-footer {
+            padding: 20px 15px;
+            background: linear-gradient(0deg, #000008 0%, var(--background-dark) 100%);
+            text-align: center;
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary-color);
+            text-shadow: 0 0 8px var(--primary-color);
+            position: relative;
+            flex-shrink: 0;
+            overflow: hidden;
+            border-top: 2px solid var(--primary-color);
+            box-shadow: 0 -5px 20px -5px rgba(0, 250, 255, 0.4);
+            animation: pulse-glow 4s ease-in-out infinite;
+        }
+
+        /* D E C O R A C I Ó N: Animación de pulso para el footer */
+        @keyframes pulse-glow {
+            0%, 100% {
+                box-shadow: 0 -5px 20px -5px rgba(0, 250, 255, 0.4);
+                text-shadow: 0 0 8px var(--primary-color);
+            }
+            50% {
+                box-shadow: 0 -8px 30px -5px rgba(0, 250, 255, 0.7);
+                text-shadow: 0 0 12px var(--accent-color);
+            }
+        }
+
+        /* D E C O R A C I Ó N: Estrellas fugaces en el footer */
+        .galactic-footer::before, .galactic-footer::after {
+            content: '';
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 10px 2px white;
+            top: 50%;
+            animation: shooting-star 10s linear infinite;
+        }
+
+        .galactic-footer::after {
+            animation-delay: -5s; /* Segundo cometa desfasado */
+        }
+
+        @keyframes shooting-star {
+            0% { transform: translateX(-200px) translateY(-50px) scale(0.8); opacity: 1; }
+            80% { opacity: 1; }
+            100% { transform: translateX(calc(100vw + 200px)) translateY(40px) scale(1.2); opacity: 0; }
+        }
+        
+        .footer-author {
+            font-size: 1rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            position: relative;
+            z-index: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="game-wrapper" id="gameWrapper">
+        <!-- M A R C A C I Ó N: Barra de Estadísticas Superior -->
+        <div class="stats-bar">
+            <div class="stat">
+                <span>Nivel:</span>
+                <span id="level" class="font-bold text-lg">1</span>
+            </div>
+            <div class="stat">
+                <span>Vidas:</span>
+                <div class="lives-container" id="livesContainer"></div>
+            </div>
+            <div class="stat">
+                <span>Puntos:</span>
+                <span id="score" class="font-bold text-lg">0</span>
+            </div>
+            <div class="stat">
+                <span>Progreso:</span>
+                <span id="progress" class="font-bold">0/10</span>
+                <div class="progress-bar w-20">
+                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="stat">
+                <span>Nota:</span>
+                <span id="grade" class="font-bold text-lg">0.0</span>
+                <span class="text-yellow-400">⭐</span>
+            </div>
+            <div class="stat">
+                <span>Tema:</span>
+                <span id="currentTopic" class="font-bold">Magnitudes</span>
+            </div>
+        </div>
+
+        <!-- M A R C A C I Ó N: Canvas del Juego -->
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- M A R C A C I Ó N: Controles del Juego -->
+        <div class="controls-container">
+            <div class="control-group" style="width: 100%;">
+                <label class="font-bold mb-2">Seleccionar Temas de Física (puedes elegir varios):</label>
+                <div class="topic-switcher">
+                    <input type="checkbox" id="topicMagnitudes" name="gameTopics" value="magnitudes" checked>
+                    <label for="topicMagnitudes">Magnitudes</label>
+                    
+                    <input type="checkbox" id="topicSI" name="gameTopics" value="si">
+                    <label for="topicSI">Sistema SI</label>
+                    
+                    <input type="checkbox" id="topicCinematica" name="gameTopics" value="cinematica">
+                    <label for="topicCinematica">Cinemática</label>
+                    
+                    <input type="checkbox" id="topicMRU" name="gameTopics" value="mru">
+                    <label for="topicMRU">MRU</label>
+                    
+                    <input type="checkbox" id="topicMRUA" name="gameTopics" value="mrua">
+                    <label for="topicMRUA">MRUA</label>
+                    
+                    <input type="checkbox" id="topicMCU" name="gameTopics" value="mcu">
+                    <label for="topicMCU">MCU</label>
+                    
+                    <input type="checkbox" id="topicGravedad" name="gameTopics" value="gravedad">
+                    <label for="topicGravedad">Mov. Vertical</label>
+                    
+                    <input type="checkbox" id="topicParabolico" name="gameTopics" value="parabolico">
+                    <label for="topicParabolico">Mov. Parabólico</label>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap gap-4 items-center justify-center w-full">
+                <div class="control-group">
+                    <label for="levelSelect" class="font-bold">Nivel:</label>
+                    <select id="levelSelect" class="bg-gray-800 text-white border border-cyan-400 rounded px-3 py-2">
+                        <option value="1">Nivel 1 (10 preguntas)</option>
+                        <option value="2">Nivel 2 (20 preguntas)</option>
+                        <option value="3">Nivel 3 (30 preguntas)</option>
+                    </select>
+                </div>
+
+                <button id="startButton" class="game-button btn-success">🚀 Iniciar Misión</button>
+                <button id="pauseButton" class="game-button btn-warning" disabled>⏸️ Pausa</button>
+                <button id="soundButton" class="game-button">🔊 Sonido</button>
+                <button id="helpButton" class="game-button">❓ Ayuda</button>
+                <button id="resetButton" class="game-button">🔄 Reiniciar</button>
+            </div>
+        </div>
+        
+        <!-- M A R C A C I Ó N: Pie de página galáctico -->
+        <footer class="galactic-footer">
+            <div class="footer-author">Autor: Msc Néstor Fabio Montoya Palacios</div>
+        </footer>
+    </div>
+    
+    <!-- M A R C A C I Ó N: Modales -->
+    <div id="questionModal" class="modal">
+        <div class="modal-content">
+            <h2>🎯 Desafío de Física</h2>
+            <div id="questionData" class="mb-4 p-3 bg-gray-800 rounded text-sm text-gray-300"></div>
+            <div id="questionText" class="text-lg mb-6 leading-relaxed"></div>
+            <div id="optionsContainer" class="space-y-3"></div>
+            <button id="answerButton" class="game-button btn-success mt-6" disabled>✅ Confirmar Respuesta</button>
+        </div>
+    </div>
+
+    <div id="feedbackModal" class="modal">
+        <div class="modal-content">
+            <h2 id="feedbackTitle"></h2>
+            <p id="feedbackText" class="text-lg mb-4"></p>
+            <div id="solution-container" style="display: none;"></div>
+            <button id="nextButton" class="game-button btn-success mt-6">▶️ Continuar</button>
+        </div>
+    </div>
+
+    <div id="helpModal" class="modal">
+        <div class="modal-content">
+            <h2>📚 Academia Espacial - Manual del Cadete</h2>
+            <div class="text-left space-y-4 text-sm">
+                <div>
+                    <h3 class="text-cyan-400 font-bold text-lg mb-2">🎯 Misión</h3>
+                    <p>Pilota tu nave espacial 🚀 y colisiona con meteoritos ☄️ para descubrir secretos de la física. ¡Responde preguntas para dominar el universo!</p>
+                </div>
+                <div>
+                    <h3 class="text-cyan-400 font-bold text-lg mb-2">🎮 Controles</h3>
+                    <ul class="list-disc list-inside space-y-1 ml-4">
+                        <li><strong>Mouse/Dedo:</strong> Mueve la nave espacial</li>
+                        <li><strong>Colisiones:</strong> Toca meteoritos para aprender física</li>
+                        <li><strong>Temas:</strong> Selecciona múltiples temas (como checkboxes)</li>
+                        <li><strong>Planetas:</strong> Decorativos y coloridos, distribuidos por el espacio</li>
+                        <li><strong>Sonido:</strong> Activa/desactiva con el botón 🔊</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-cyan-400 font-bold text-lg mb-2">📋 Temas Disponibles</h3>
+                    <ul class="list-disc list-inside space-y-1 ml-4">
+                        <li><strong>Magnitudes:</strong> Escalares vs Vectoriales</li>
+                        <li><strong>Sistema SI:</strong> Unidades fundamentales</li>
+                        <li><strong>Cinemática:</strong> Movimiento y velocidad</li>
+                        <li><strong>MRU:</strong> Velocidad constante</li>
+                        <li><strong>MRUA:</strong> Aceleración constante</li>
+                        <li><strong>MCU:</strong> Movimiento circular uniforme</li>
+                        <li><strong>Mov. Vertical:</strong> Caída libre y lanzamiento</li>
+                        <li><strong>Mov. Parabólico:</strong> Proyectiles</li>
+                    </ul>
+                </div>
+            </div>
+            <button id="closeHelp" class="game-button mt-6">🚀 ¡Entendido!</button>
+        </div>
+    </div>
+
+    <div id="levelUpModal" class="modal">
+        <div class="modal-content">
+            <h2 id="levelUpTitle" class="text-2xl"></h2>
+            <p id="levelUpText" class="text-lg mb-6"></p>
+            <div id="levelUpStats" class="mb-6 p-4 bg-gray-800 rounded"></div>
+            <button id="nextLevelButton" class="game-button btn-success">🚀 ¡Siguiente Nivel!</button>
+        </div>
+    </div>
+
+    <div id="pauseModal" class="modal">
+        <div class="modal-content">
+            <h2>⏸️ Juego Pausado</h2>
+            <p class="text-lg mb-6">El tiempo se ha detenido en la estación espacial.</p>
+            <div class="space-y-4">
+                <button id="resumeButton" class="game-button btn-success">▶️ Reanudar</button>
+                <button id="restartFromPause" class="game-button">🔄 Reiniciar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- M A R C A C I Ó N: SCRIPT PRINCIPAL DEL JUEGO -->
+    <script>
+        // C O M E N T A R I O: Configuración global de MathJax
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true,
+                processEnvironments: true
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+            },
+            startup: {
+                ready: () => {
+                    console.log('✅ MathJax cargado correctamente y listo.');
+                    MathJax.startup.defaultReady();
+                }
+            }
+        };
+
+        // C O M E N T A R I O: Constantes de configuración del juego (CONFIG)
+        const CONFIG = {
+            INITIAL_LIVES: 5,
+            POINTS_PER_CORRECT: 100,
+            LEVEL_BONUS_MULTIPLIER: 50,
+            MAX_STARS: 150,
+            SPACESHIP: { speed: 2, size: 30, trailLength: 15 },
+            COSMIC_OBJECTS: {
+                meteorites: { count: 4, speed: 1, size: 25 },
+                planets: { count: 6, speed: 0, size: 50 },
+                comets: { count: 3, speed: 1.5, size: 20 }
+            },
+            LEVELS: {
+                1: { questions: 10, name: "Cadete Espacial" },
+                2: { questions: 20, name: "Piloto Avanzado" },
+                3: { questions: 30, name: "Comandante Supremo" }
+            }
+        };
+
+        // C O M E N T A R I O: Clase AudioSystem
+        class AudioSystem {
+            constructor() {
+                this.enabled = true;
+                this.context = null;
+                this.init();
+            }
+
+            async init() {
+                try {
+                    this.context = new (window.AudioContext || window.webkitAudioContext)();
+                    console.log('🔊 Sistema de audio inicializado');
+                } catch (error) {
+                    console.log('ℹ️ Audio no disponible en este navegador.');
+                    this.enabled = false;
+                }
+            }
+
+            createTone(frequency, duration, type = 'sine') {
+                if (!this.enabled || !this.context) return;
+                const oscillator = this.context.createOscillator();
+                const gainNode = this.context.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(this.context.destination);
+                oscillator.frequency.setValueAtTime(frequency, this.context.currentTime);
+                oscillator.type = type;
+                gainNode.gain.setValueAtTime(0.1, this.context.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, this.context.currentTime + duration);
+                oscillator.start(this.context.currentTime);
+                oscillator.stop(this.context.currentTime + duration);
+            }
+
+            play(type) {
+                if (!this.enabled) return;
+                switch(type) {
+                    case 'success': this.createTone(800, 0.1, 'square'); break;
+                    case 'error': this.createTone(200, 0.3, 'sawtooth'); break;
+                    case 'collision': this.createTone(400, 0.15, 'triangle'); break;
+                    case 'levelUp': this.createTone(600, 0.2, 'sine'); break;
+                }
+            }
+
+            toggle() {
+                this.enabled = !this.enabled;
+                return this.enabled;
+            }
+        }
+
+        // C O M E N T A R I O: Objeto de estado del juego (gameState)
+        let gameState = {};
+
+        // C O M E N T A R I O: Objeto de elementos del DOM (elements)
+        const elements = {
+            canvas: document.getElementById('gameCanvas'),
+            ctx: null,
+            level: document.getElementById('level'),
+            lives: document.getElementById('livesContainer'),
+            score: document.getElementById('score'),
+            progress: document.getElementById('progress'),
+            progressFill: document.getElementById('progressFill'),
+            grade: document.getElementById('grade'),
+            currentTopic: document.getElementById('currentTopic'),
+            topicCheckboxes: document.querySelectorAll('input[name="gameTopics"]'),
+            levelSelect: document.getElementById('levelSelect'),
+            startButton: document.getElementById('startButton'),
+            pauseButton: document.getElementById('pauseButton'),
+            helpButton: document.getElementById('helpButton'),
+            resetButton: document.getElementById('resetButton'),
+            questionModal: document.getElementById('questionModal'),
+            feedbackModal: document.getElementById('feedbackModal'),
+            helpModal: document.getElementById('helpModal'),
+            levelUpModal: document.getElementById('levelUpModal'),
+            pauseModal: document.getElementById('pauseModal'),
+            questionData: document.getElementById('questionData'),
+            questionText: document.getElementById('questionText'),
+            optionsContainer: document.getElementById('optionsContainer'),
+            answerButton: document.getElementById('answerButton'),
+            feedbackTitle: document.getElementById('feedbackTitle'),
+            feedbackText: document.getElementById('feedbackText'),
+            solutionContainer: document.getElementById('solution-container'),
+            nextButton: document.getElementById('nextButton')
+        };
+
+        let audioSystem = null;
+
+        // M A R C A C I Ó N: BANCO DE PREGUNTAS MASIVAMENTE AMPLIADO
+        const questionDatabase = {
+            magnitudes: [
+                { type: 'theory', question: '¿Cuál de las siguientes es una magnitud escalar?', options: ['Velocidad', 'Aceleración', 'Temperatura', 'Fuerza'], correct: 2, explanation: 'La temperatura es una magnitud escalar porque se define completamente con un número y una unidad, sin necesidad de una dirección.', difficulty: 1 },
+                { type: 'theory', question: '¿Qué caracteriza a una magnitud vectorial?', options: ['Solo tiene magnitud', 'Tiene magnitud, dirección y sentido', 'Solo tiene dirección', 'No tiene unidades'], correct: 1, explanation: 'Las magnitudes vectoriales como la fuerza o la velocidad necesitan magnitud (un valor numérico), dirección (la línea sobre la que actúan) y sentido (hacia dónde apuntan en esa línea).', difficulty: 1 },
+                { type: 'theory', question: '¿Cuál de estas NO es una magnitud vectorial?', options: ['Desplazamiento', 'Campo Eléctrico', 'Masa', 'Torque'], correct: 2, explanation: 'La masa es la medida de la inercia de un cuerpo y es una magnitud puramente escalar.', difficulty: 2 },
+                { type: 'theory', question: 'El peso de un objeto es:', options: ['Una magnitud escalar', 'Una magnitud vectorial', 'Una propiedad intrínseca', 'Igual a la masa'], correct: 1, explanation: 'El peso es la fuerza con la que la gravedad atrae a un objeto ($$ \\vec{P} = m \\cdot \\vec{g} $$). Al ser una fuerza, es vectorial y siempre apunta hacia el centro del cuerpo masivo que genera el campo gravitatorio.', difficulty: 2 },
+                { type: 'theory', question: 'La distancia recorrida es una magnitud _______, mientras que el desplazamiento es una magnitud _______.', options: ['vectorial, escalar', 'escalar, vectorial', 'escalar, escalar', 'vectorial, vectorial'], correct: 1, explanation: 'La distancia es la longitud total del camino recorrido (escalar). El desplazamiento es el vector que une el punto inicial con el final (vectorial).', difficulty: 2 },
+                { type: 'theory', question: '¿Cuál de las siguientes es una magnitud fundamental en el Sistema Internacional?', options: ['Velocidad', 'Fuerza', 'Energía', 'Intensidad de corriente eléctrica'], correct: 3, explanation: 'La intensidad de corriente eléctrica, medida en Amperios (A), es una de las siete magnitudes fundamentales del SI. Las otras son longitud, masa, tiempo, temperatura, cantidad de sustancia e intensidad luminosa.', difficulty: 3 },
+                { type: 'theory', question: 'El trabajo realizado por una fuerza es una magnitud:', options: ['Vectorial', 'Escalar', 'Adimensional', 'Fundamental'], correct: 1, explanation: 'El trabajo es una magnitud escalar que se obtiene del producto escalar de los vectores fuerza y desplazamiento ($$ W = \\vec{F} \\cdot \\vec{d} $$). Solo tiene magnitud, no dirección.', difficulty: 2 },
+                { type: 'theory', question: 'La potencia, que mide la rapidez con que se realiza un trabajo, es una magnitud:', options: ['Vectorial', 'Escalar', 'Nula', 'Negativa'], correct: 1, explanation: 'La potencia es la cantidad de trabajo (energía) por unidad de tiempo ($$ P = W/t $$). Es una magnitud escalar.', difficulty: 2 },
+                { type: 'theory', question: '¿Cuál de los siguientes grupos contiene únicamente magnitudes vectoriales?', options: ['Masa, tiempo, fuerza', 'Velocidad, aceleración, desplazamiento', 'Energía, trabajo, potencia', 'Temperatura, presión, densidad'], correct: 1, explanation: 'La velocidad, la aceleración y el desplazamiento son ejemplos clásicos de magnitudes que requieren una dirección y un sentido para ser completamente descritas.', difficulty: 3 },
+                { type: 'theory', question: 'La presión que ejerce un gas sobre las paredes de un recipiente es una magnitud:', options: ['Vectorial', 'Escalar', 'Tensorial de rango 2', 'Nula'], correct: 1, explanation: 'Aunque la fuerza que ejerce el gas sobre un punto de la pared es un vector, la presión se define como una magnitud escalar (fuerza por unidad de área).', difficulty: 2 },
+                { type: 'theory', question: 'El momento lineal o cantidad de movimiento ($$\\vec{p}=m\\vec{v}$$) es una magnitud:', options: ['Escalar', 'Vectorial', 'Adimensional', 'Constante universal'], correct: 1, explanation: 'El momento lineal es una magnitud vectorial, ya que resulta del producto de un escalar (masa) por un vector (velocidad), y tiene la misma dirección y sentido que la velocidad.', difficulty: 2 },
+                { type: 'theory', question: 'La energía cinética ($$E_c = \\frac{1}{2}mv^2$$) es una magnitud:', options: ['Vectorial', 'Escalar', 'Dependiente de la dirección', 'Negativa'], correct: 1, explanation: 'La energía cinética es una magnitud escalar. Aunque depende de la velocidad, lo hace a través de su módulo al cuadrado ($$v^2$$), perdiendo la información de la dirección.', difficulty: 2 },
+                { type: 'theory', question: '¿Cuál es la principal diferencia entre un vector y un escalar?', options: ['El escalar tiene unidades y el vector no', 'El vector tiene dirección y el escalar no', 'El escalar puede ser negativo y el vector no', 'No hay diferencias fundamentales'], correct: 1, explanation: 'La característica distintiva de un vector frente a un escalar es que el vector posee magnitud, dirección y sentido, mientras que el escalar queda completamente definido por su magnitud (un número) y su unidad.', difficulty: 1 },
+                { type: 'theory', question: 'La densidad de un material es una magnitud:', options: ['Vectorial', 'Escalar', 'Adimensional', 'Relativa'], correct: 1, explanation: 'La densidad se define como la masa por unidad de volumen ($$\\rho = m/V$$). Ambas, masa y volumen, son escalares, por lo tanto, la densidad también lo es.', difficulty: 1 },
+                { type: 'theory', question: 'El campo eléctrico ($$\\vec{E}$$) en un punto del espacio es una magnitud:', options: ['Escalar', 'Vectorial', 'Potencial', 'Adimensional'], correct: 1, explanation: 'El campo eléctrico es una magnitud vectorial. En cada punto del espacio, define la fuerza que actuaría sobre una carga de prueba unitaria, por lo que tiene magnitud y dirección.', difficulty: 3 },
+            ],
+            
+            si: [
+                { type: 'theory', question: '¿Cuál es la unidad de la fuerza en el Sistema Internacional (SI)?', options: ['Dina', 'Newton', 'Libra', 'Pascal'], correct: 1, explanation: 'El Newton (N) es la unidad derivada para la fuerza en el SI. Se define como $$ 1 \\, N = 1 \\, kg \\cdot m/s^2 $$.', difficulty: 1 },
+                { type: 'theory', question: 'Convierte 500 centímetros a metros.', options: ['0.5 m', '5 m', '50 m', '0.05 m'], correct: 1, explanation: 'Sabiendo que 1 metro equivale a 100 centímetros, la conversión es: $$ 500 \\, cm \\cdot \\frac{1 \\, m}{100 \\, cm} = 5 \\, m $$.', difficulty: 1 },
+                { type: 'theory', question: '¿Cuál es la unidad de energía en el SI?', options: ['Caloría', 'Ergio', 'Joule', 'Vatio'], correct: 2, explanation: 'El Joule (J) es la unidad de energía, trabajo y calor en el SI. El Vatio (W) es la unidad de potencia (energía por unidad de tiempo).', difficulty: 2 },
+                { type: 'theory', question: 'Convierte 108 km/h a m/s.', options: ['30 m/s', '25 m/s', '36 m/s', '10.8 m/s'], correct: 0, explanation: 'Para convertir km/h a m/s, se multiplica por 1000 (para pasar km a m) y se divide por 3600 (para pasar h a s). El factor de conversión es $$ \\frac{1000}{3600} = \\frac{5}{18} $$. Entonces, $$ 108 \\, \\frac{km}{h} \\cdot \\frac{5}{18} = 6 \\cdot 5 = 30 \\, \\frac{m}{s} $$.', difficulty: 3 },
+                { type: 'theory', question: 'La presión se mide en Pascales (Pa) en el SI. ¿A qué equivale un Pascal?', options: ['$$ N \\cdot m^2 $$', '$$ N / m^3 $$', '$$ kg / m^2 $$', '$$ N / m^2 $$'], correct: 3, explanation: 'La presión es la fuerza aplicada por unidad de área ($$ P = F/A $$), por lo tanto, su unidad es Newton por metro cuadrado ($$ N/m^2 $$).', difficulty: 3 },
+                { type: 'theory', question: '¿Cuál es la unidad de temperatura termodinámica en el SI?', options: ['Grado Celsius', 'Grado Fahrenheit', 'Kelvin', 'Grado Rankine'], correct: 2, explanation: 'La unidad fundamental de temperatura en el SI es el Kelvin (K). A diferencia de los grados Celsius o Fahrenheit, el Kelvin es una escala absoluta donde 0 K representa el cero absoluto.', difficulty: 2 },
+                { type: 'theory', question: '¿Qué prefijo del SI representa el factor $$10^9$$?', options: ['Mega', 'Kilo', 'Tera', 'Giga'], correct: 3, explanation: 'El prefijo "Giga" (G) representa un factor de mil millones, es decir, $$10^9$$. Por ejemplo, 1 Gigavatio (GW) son $$10^9$$ vatios.', difficulty: 2 },
+                { type: 'theory', question: '¿Qué prefijo del SI representa el factor $$10^{-6}$$?', options: ['Mili', 'Nano', 'Micro', 'Pico'], correct: 2, explanation: 'El prefijo "Micro" (μ) representa un factor de una millonésima, es decir, $$10^{-6}$$. Por ejemplo, 1 micrómetro (μm) es la millonésima parte de un metro.', difficulty: 2 },
+                { type: 'theory', question: '¿Cuál es la unidad de potencia en el SI?', options: ['Joule', 'Caballo de fuerza (HP)', 'Vatio', 'Ergio'], correct: 2, explanation: 'El Vatio (Watt, W) es la unidad de potencia en el SI, y se define como un Joule por segundo ($$1 W = 1 J/s$$).', difficulty: 2 },
+                { type: 'theory', question: '¿A cuántos mililitros (mL) equivale un litro (L)?', options: ['10 mL', '100 mL', '1000 mL', '0.1 mL'], correct: 2, explanation: 'El prefijo "mili" significa una milésima parte ($$10^{-3}$$). Por lo tanto, 1 litro contiene 1000 mililitros.', difficulty: 1 },
+                { type: 'theory', question: 'La unidad de frecuencia en el SI es el Hertz (Hz). ¿A qué es equivalente?', options: ['$$s$$', '$$s^{-1}$$', '$$rad/s$$', '$$m/s$$'], correct: 1, explanation: 'La frecuencia mide el número de ciclos u oscilaciones por segundo. Por lo tanto, 1 Hertz es equivalente a 1 ciclo por segundo, o $$s^{-1}$$.', difficulty: 2 },
+                { type: 'theory', question: 'Convierte 2.5 kilogramos (kg) a gramos (g).', options: ['25 g', '250 g', '2500 g', '25000 g'], correct: 2, explanation: 'El prefijo "kilo" significa mil ($$10^3$$). Por lo tanto, $$2.5 \\, kg = 2.5 \\cdot 1000 \\, g = 2500 \\, g$$.', difficulty: 1 },
+                { type: 'theory', question: 'La unidad de carga eléctrica en el SI es:', options: ['Amperio', 'Voltio', 'Ohmio', 'Culombio'], correct: 3, explanation: 'El Culombio (Coulomb, C) es la unidad de carga eléctrica en el SI. El Amperio mide la corriente (flujo de carga), el Voltio el potencial y el Ohmio la resistencia.', difficulty: 2 },
+                { type: 'theory', question: '¿Cuántos segundos hay en una hora?', options: ['60', '120', '3600', '86400'], correct: 2, explanation: 'Una hora tiene 60 minutos, y cada minuto tiene 60 segundos. Por lo tanto, $$1 \\, h = 60 \\, min/h \\cdot 60 \\, s/min = 3600 \\, s$$.', difficulty: 1 },
+                { type: 'theory', question: 'La unidad de cantidad de sustancia en el SI es el:', options: ['Gramo', 'Mol', 'Litro', 'UMA'], correct: 1, explanation: 'El mol es la unidad fundamental para medir la cantidad de sustancia en el SI. Un mol contiene aproximadamente $$6.022 \\times 10^{23}$$ entidades elementales (Número de Avogadro).', difficulty: 3 },
+            ],
+            
+            cinematica: [
+                { type: 'theory', question: '¿Qué estudia la cinemática?', options: ['Las causas del movimiento', 'El movimiento de los cuerpos sin atender a las causas', 'El equilibrio de los cuerpos', 'La energía de los cuerpos'], correct: 1, explanation: 'La cinemática es la rama de la mecánica que describe el movimiento de los objetos sólidos sin considerar las causas que lo originan (las fuerzas).', difficulty: 1 },
+                { type: 'theory', question: 'Si un objeto se mueve y luego regresa a su punto de partida, ¿cuál es su desplazamiento total?', options: ['Igual a la distancia recorrida', 'La mitad de la distancia recorrida', 'Cero', 'No se puede saber'], correct: 2, explanation: 'El desplazamiento es el vector entre la posición inicial y final. Si ambas posiciones son la misma, el vector desplazamiento es nulo (cero), aunque la distancia recorrida no lo sea.', difficulty: 2 },
+                { type: 'theory', question: 'La aceleración se define como:', options: ['El cambio de posición en el tiempo', 'La distancia recorrida por unidad de tiempo', 'El cambio de velocidad en el tiempo', 'La rapidez del movimiento'], correct: 2, explanation: 'La aceleración es una magnitud vectorial que describe la tasa de cambio de la velocidad por unidad de tiempo. $$ \\vec{a} = \\frac{d\\vec{v}}{dt} $$.', difficulty: 2 },
+                { type: 'theory', question: 'Un coche da una vuelta completa a una pista circular de 100 m de radio a una velocidad de módulo constante. ¿Cuál de las siguientes afirmaciones es CIERTA?', options: ['Su velocidad es constante.', 'Su aceleración es cero.', 'Su desplazamiento es cero.', 'La distancia recorrida es cero.'], correct: 2, explanation: 'Al completar una vuelta, el punto final coincide con el inicial, por lo que el desplazamiento es cero. La velocidad no es constante porque su dirección cambia continuamente, lo que implica que hay una aceleración (centrípeta).', difficulty: 3 },
+                { type: 'theory', question: '¿Qué representa la pendiente de una gráfica posición-tiempo (x-t)?', options: ['La aceleración', 'La posición inicial', 'La velocidad', 'El tiempo total'], correct: 2, explanation: 'La pendiente de la gráfica x-t ($$\\Delta x / \\Delta t$$) representa la velocidad media en ese intervalo. Si la gráfica es una recta, representa la velocidad instantánea, que es constante.', difficulty: 2 },
+                { type: 'theory', question: '¿Qué representa el área bajo la curva en una gráfica velocidad-tiempo (v-t)?', options: ['La aceleración', 'La velocidad media', 'La posición final', 'El desplazamiento'], correct: 3, explanation: 'El área bajo la curva v-t representa el desplazamiento total del objeto, ya que corresponde a la integral de la velocidad respecto al tiempo ($$\\int v(t) dt$$).', difficulty: 3 },
+                { type: 'theory', question: 'La "trayectoria" de un móvil es:', options: ['La distancia que recorre', 'El vector que une el inicio y el final', 'La línea geométrica que describe el móvil al moverse', 'La velocidad del móvil'], correct: 2, explanation: 'La trayectoria es el conjunto de todos los puntos por los que pasa un cuerpo en movimiento. Puede ser una línea recta, una curva, etc.', difficulty: 1 },
+                { type: 'theory', question: 'Si un coche frena, su aceleración es:', options: ['Positiva', 'Negativa', 'Nula', 'Infinita'], correct: 1, explanation: 'Al frenar, la velocidad disminuye. Esto significa que el vector aceleración tiene un sentido opuesto al vector velocidad. Si la velocidad es positiva, la aceleración es negativa.', difficulty: 1 },
+                { type: 'theory', question: 'El movimiento es un concepto relativo. ¿Qué significa esto?', options: ['Que no se puede medir', 'Que depende del sistema de referencia del observador', 'Que siempre es uniforme', 'Que solo los seres vivos se mueven'], correct: 1, explanation: 'Decimos que el movimiento es relativo porque la descripción de la posición, velocidad y trayectoria de un objeto depende del punto de vista o sistema de referencia que se elija.', difficulty: 2 },
+                { type: 'theory', question: 'La velocidad instantánea es:', options: ['La velocidad media en un intervalo muy largo', 'La velocidad en un punto exacto del tiempo', 'La misma que la velocidad media', 'Siempre cero en el reposo'], correct: 1, explanation: 'La velocidad instantánea es el límite de la velocidad media cuando el intervalo de tiempo tiende a cero. Es la velocidad que tiene un objeto en un instante específico.', difficulty: 2 },
+                { type: 'calculation', question: 'Un atleta corre 400 m en una pista circular y termina en el punto de partida. ¿Cuál es su desplazamiento?', options: ['400 m', '127.3 m', '0 m', '800 m'], correct: 2, explanation: 'El desplazamiento es el vector que une la posición inicial y final. Como el atleta termina donde empezó, su posición final es igual a la inicial, y el desplazamiento es cero.', difficulty: 1 },
+                { type: 'calculation', question: 'Un coche viaja hacia el norte 3 km y luego hacia el este 4 km. ¿Cuál es el módulo del desplazamiento?', options: ['7 km', '1 km', '5 km', '3.5 km'], correct: 2, explanation: 'Los dos trayectos forman un triángulo rectángulo. El módulo del desplazamiento es la hipotenusa. Usando el teorema de Pitágoras: $$d = \\sqrt{3^2 + 4^2} = \\sqrt{9 + 16} = \\sqrt{25} = 5 \\, km$$.', difficulty: 2 },
+                { type: 'theory', question: '¿Qué tipo de movimiento tiene una aceleración constante y no nula?', options: ['MRU', 'MCU', 'MRUA', 'Reposo'], correct: 2, explanation: 'El Movimiento Rectilíneo Uniformemente Acelerado (MRUA) se caracteriza precisamente por tener una aceleración constante y distinta de cero.', difficulty: 1 },
+                { type: 'theory', question: '¿En cuál de estos casos la aceleración es cero?', options: ['Un coche tomando una curva a 50 km/h', 'Un satélite en órbita circular', 'Una manzana cayendo', 'Un tren viajando en línea recta a 100 km/h'], correct: 3, explanation: 'Si el tren viaja en línea recta (dirección constante) y a velocidad constante (módulo constante), su vector velocidad es constante y, por tanto, su aceleración es nula. En los otros casos, la dirección de la velocidad cambia, lo que implica aceleración.', difficulty: 2 },
+                { type: 'theory', question: '¿Qué es un sistema de referencia inercial?', options: ['Uno que se mueve en círculos', 'Uno que está en reposo o se mueve con velocidad constante', 'Uno que está acelerando', 'Uno que se encuentra en el Sol'], correct: 1, explanation: 'Un sistema de referencia inercial es aquel en el que se cumplen las leyes de Newton, específicamente la primera ley (ley de inercia). Estos sistemas no están acelerados.', difficulty: 3 },
+             ],
+            
+            mru: [
+                { type: 'calculation', question: 'Un cohete viaja en el espacio a 3000 m/s. ¿Qué distancia recorre en 1 minuto?', formula: '$$ d = v \\cdot t $$', given: { v: 3000, t: 60, unit_v: 'm/s', unit_t: 's' }, options: ['180 km', '3 km', '1800 m', '300 km'], correct: 0, explanation: 'Primero, convierte el tiempo a segundos: 1 minuto = 60 s. Luego, calcula la distancia: $$ d = 3000 \\, m/s \\cdot 60 \\, s = 180000 \\, m $$. Finalmente, convierte a kilómetros: 180000 m = 180 km.', difficulty: 2 },
+                { type: 'calculation', question: 'Dos ciudades A y B están separadas por 450 km. Un tren sale de A hacia B a 90 km/h. ¿Cuánto tiempo tarda en llegar?', formula: '$$ t = \\frac{d}{v} $$', given: { d: 450, v: 90, unit_d: 'km', unit_v: 'km/h' }, options: ['4 horas', '4.5 horas', '5 horas', '5.5 horas'], correct: 2, explanation: 'Usando la fórmula del MRU: $$ t = \\frac{450 \\, km}{90 \\, km/h} = 5 \\, horas $$.', difficulty: 1 },
+                { type: 'calculation', question: 'Un corredor se mueve de la posición x=20m a x=140m en 15 segundos con MRU. ¿Cuál es su velocidad?', formula: '$$ v = \\frac{\\Delta x}{t} = \\frac{x_f - x_i}{t} $$', given: { xi: 20, xf: 140, t: 15, unit_x: 'm', unit_t: 's' }, options: ['6 m/s', '8 m/s', '10 m/s', '12 m/s'], correct: 1, explanation: 'El desplazamiento es $$ \\Delta x = 140 \\, m - 20 \\, m = 120 \\, m $$. La velocidad es $$ v = \\frac{120 \\, m}{15 \\, s} = 8 \\, m/s $$.', difficulty: 2 },
+                { type: 'theory', question: 'En un MRU, la aceleración es siempre...', options: ['Positiva', 'Negativa', 'Constante y no nula', 'Nula'], correct: 3, explanation: 'La característica principal del Movimiento Rectilíneo Uniforme (MRU) es que la velocidad es constante, lo que implica que la aceleración es cero.', difficulty: 1 },
+                { type: 'theory', question: 'La gráfica de posición vs. tiempo (x-t) para un MRU es una:', options: ['Parábola', 'Línea recta', 'Hipérbola', 'Línea horizontal'], correct: 1, explanation: 'En un MRU, la posición cambia linealmente con el tiempo ($$x = x_0 + vt$$), lo que resulta en una línea recta en la gráfica x-t. La pendiente de la recta es la velocidad.', difficulty: 2 },
+                { type: 'theory', question: 'La gráfica de velocidad vs. tiempo (v-t) para un MRU es una:', options: ['Línea recta con pendiente', 'Parábola', 'Línea horizontal', 'Línea vertical'], correct: 2, explanation: 'En un MRU, la velocidad es constante, por lo que su valor no cambia con el tiempo. Esto se representa como una línea horizontal en la gráfica v-t.', difficulty: 2 },
+                { type: 'calculation', question: 'Un sonido viaja a 340 m/s. Si ves un relámpago y escuchas el trueno 5 segundos después, ¿a qué distancia está la tormenta?', formula: '$$ d = v \\cdot t $$', given: { v: 340, t: 5, unit_v: 'm/s', unit_t: 's' }, options: ['1700 m', '68 m', '345 m', '170 m'], correct: 0, explanation: 'Asumiendo que la luz del relámpago llega instantáneamente, la distancia se calcula como: $$ d = 340 \\, m/s \\cdot 5 \\, s = 1700 \\, m $$ o 1.7 km.', difficulty: 2 },
+                { type: 'calculation', question: 'Un coche se mueve con MRU a 20 m/s. ¿Qué posición ocupará a los 8 segundos si partió de $$x_0 = -10 \\, m$$?', formula: '$$ x_f = x_0 + v \\cdot t $$', given: { x0: -10, v: 20, t: 8, unit_x: 'm', unit_v: 'm/s', unit_t: 's' }, options: ['160 m', '150 m', '170 m', '140 m'], correct: 1, explanation: 'Aplicando la ecuación de posición: $$ x_f = -10 \\, m + (20 \\, m/s \\cdot 8 \\, s) = -10 + 160 = 150 \\, m $$.', difficulty: 2 },
+                { type: 'calculation', question: 'Dos trenes parten de dos ciudades separadas 500 km, uno al encuentro del otro. El tren A va a 60 km/h y el B a 90 km/h. ¿En cuánto tiempo se encuentran?', formula: '$$ d = (v_A + v_B) \\cdot t $$', given: { d: 500, vA: 60, vB: 90, unit_d: 'km', unit_v: 'km/h' }, options: ['3.33 h', '2.5 h', '4 h', '5 h'], correct: 0, explanation: 'La velocidad relativa de acercamiento es la suma de sus velocidades: $$v_r = 60 + 90 = 150 \\, km/h$$. El tiempo de encuentro es $$t = d/v_r = 500 \\, km / 150 \\, km/h \\approx 3.33 \\, horas$$.', difficulty: 3 },
+                { type: 'theory', question: 'Si un objeto recorre distancias iguales en tiempos iguales, se dice que tiene:', options: ['Aceleración constante', 'Velocidad uniforme', 'Posición constante', 'Aceleración variable'], correct: 1, explanation: 'Esta es la definición de velocidad uniforme o constante, la característica fundamental del MRU.', difficulty: 1 },
+                { type: 'calculation', question: 'Un coche viaja a 72 km/h. ¿Qué distancia en metros recorre en 10 segundos?', formula: '$$ d = v \\cdot t $$', given: { v_kmh: 72, t: 10, unit_t: 's' }, options: ['720 m', '200 m', '20 m', '72 m'], correct: 1, explanation: 'Primero, convierte la velocidad a m/s: $$ 72 \\, km/h = 20 \\, m/s $$. Luego, calcula la distancia: $$ d = 20 \\, m/s \\cdot 10 \\, s = 200 \\, m $$.', difficulty: 2 },
+                { type: 'calculation', question: 'Un coche parte de la posición $$x=100$$ m y se mueve con una velocidad de $$-15$$ m/s. ¿Cuál es su posición a los 5 segundos?', formula: '$$ x_f = x_0 + v \\cdot t $$', given: { x0: 100, v: -15, t: 5, unit_x: 'm', unit_v: 'm/s', unit_t: 's' }, options: ['75 m', '175 m', '25 m', '-75 m'], correct: 2, explanation: 'La velocidad negativa indica que se mueve en sentido contrario al positivo del eje. $$ x_f = 100 + (-15 \\cdot 5) = 100 - 75 = 25 \\, m $$.', difficulty: 2 },
+                { type: 'theory', question: '¿Cuál es la diferencia entre distancia y desplazamiento en un MRU sin cambio de sentido?', options: ['El desplazamiento es mayor', 'La distancia es mayor', 'Son iguales en módulo', 'No tienen relación'], correct: 2, explanation: 'En un movimiento rectilíneo que siempre ocurre en el mismo sentido, el módulo del vector desplazamiento coincide con la distancia total recorrida.', difficulty: 2 },
+                { type: 'calculation', question: 'Un ascensor sube 30 metros en 15 segundos con velocidad constante. ¿Cuál es su velocidad?', formula: '$$ v = d/t $$', given: { d: 30, t: 15, unit_d: 'm', unit_t: 's' }, options: ['2 m/s', '0.5 m/s', '3 m/s', '15 m/s'], correct: 0, explanation: 'La velocidad se calcula como $$ v = 30 \\, m / 15 \\, s = 2 \\, m/s $$.', difficulty: 1 },
+                { type: 'calculation', question: 'La luz del Sol tarda aproximadamente 8.3 minutos en llegar a la Tierra. Si la velocidad de la luz es $$3 \\cdot 10^8$$ m/s, ¿cuál es la distancia Tierra-Sol?', formula: '$$ d = v \\cdot t $$', given: { v: '3e8', t_min: 8.3 }, options: ['150 millones de km', '25 millones de km', '500 millones de km', '15 mil millones de km'], correct: 0, explanation: 'Primero, convierte el tiempo a segundos: $$ t = 8.3 \\, min \\cdot 60 \\, s/min = 498 \\, s $$. Luego, calcula la distancia: $$ d = (3 \\cdot 10^8 \\, m/s) \\cdot 498 \\, s \\approx 1.494 \\cdot 10^{11} \\, m $$, que son aproximadamente 150 millones de kilómetros.', difficulty: 3 },
+            ],
+            
+            mrua: [
+                { type: 'calculation', question: 'Una nave espacial parte del reposo y acelera a $$ 5 \\, m/s^2 $$. ¿Qué velocidad alcanza después de 12 segundos?', formula: '$$ v_f = v_i + a \\cdot t $$', given: { vi: 0, a: 5, t: 12, unit_a: 'm/s²', unit_t: 's' }, options: ['50 m/s', '60 m/s', '72 m/s', '120 m/s'], correct: 1, explanation: 'Como parte del reposo, $$ v_i = 0 $$. Aplicando la fórmula: $$ v_f = 0 + (5 \\, m/s^2 \\cdot 12 \\, s) = 60 \\, m/s $$.', difficulty: 2 },
+                { type: 'calculation', question: 'Un coche que viaja a 20 m/s frena uniformemente hasta detenerse en 4 segundos. ¿Qué distancia recorrió al frenar?', formula: '$$ d = \\frac{(v_i + v_f)}{2} \\cdot t $$', given: { vi: 20, vf: 0, t: 4, unit_v: 'm/s', unit_t: 's' }, options: ['20 m', '40 m', '80 m', '160 m'], correct: 1, explanation: 'La velocidad inicial es $$ v_i = 20 \\, m/s $$ y la final es $$ v_f = 0 \\, m/s $$. La distancia es $$ d = \\frac{(20 + 0)}{2} \\cdot 4 = 10 \\cdot 4 = 40 \\, m $$.', difficulty: 3 },
+                { type: 'calculation', question: 'Un objeto parte del reposo y acelera a $$ 4 \\, m/s^2 $$. ¿Qué distancia recorre en 5 segundos?', formula: '$$ d = v_i t + \\frac{1}{2} a t^2 $$', given: { vi: 0, a: 4, t: 5, unit_a: 'm/s²', unit_t: 's' }, options: ['20 m', '40 m', '50 m', '100 m'], correct: 2, explanation: 'Como $$ v_i = 0 $$, la fórmula se simplifica a $$ d = \\frac{1}{2} a t^2 $$. Sustituyendo: $$ d = \\frac{1}{2} \\cdot 4 \\cdot (5)^2 = 2 \\cdot 25 = 50 \\, m $$.', difficulty: 2 },
+                { type: 'theory', question: 'La gráfica posición-tiempo (x-t) de un MRUA es una:', options: ['Recta inclinada', 'Recta horizontal', 'Parábola', 'Hipérbola'], correct: 2, explanation: 'La ecuación de posición $$x(t) = x_0 + v_0t + \\frac{1}{2}at^2$$ es una función cuadrática del tiempo, lo que corresponde gráficamente a una parábola.', difficulty: 2 },
+                { type: 'theory', question: 'La pendiente de la gráfica velocidad-tiempo (v-t) en un MRUA representa:', options: ['La posición', 'La velocidad media', 'La aceleración', 'El desplazamiento'], correct: 2, explanation: 'La pendiente ($$\\Delta v / \\Delta t$$) de la gráfica v-t representa la tasa de cambio de la velocidad, que es la definición de aceleración. En un MRUA, esta pendiente es constante.', difficulty: 2 },
+                { type: 'calculation', question: 'Un coche acelera desde el reposo y recorre 100 m en 5 s. ¿Cuál fue su aceleración?', formula: '$$ d = v_i t + \\frac{1}{2} a t^2 $$', given: { d: 100, t: 5, vi: 0, unit_d: 'm', unit_t: 's' }, options: ['4 m/s²', '10 m/s²', '8 m/s²', '20 m/s²'], correct: 2, explanation: 'Partiendo del reposo ($$v_i=0$$), despejamos la aceleración de la fórmula de distancia: $$ a = \\frac{2d}{t^2} = \\frac{2 \\cdot 100}{5^2} = \\frac{200}{25} = 8 \\, m/s^2 $$.', difficulty: 3 },
+                { type: 'calculation', question: 'Un tren viaja a 10 m/s y acelera a $$ 2 \\, m/s^2 $$ durante 8 segundos. ¿Cuál es su velocidad final?', formula: '$$ v_f = v_i + a \\cdot t $$', given: { vi: 10, a: 2, t: 8, unit_v: 'm/s', unit_a: 'm/s²', unit_t: 's' }, options: ['16 m/s', '20 m/s', '26 m/s', '30 m/s'], correct: 2, explanation: 'Usamos la ecuación de velocidad: $$ v_f = 10 \\, m/s + (2 \\, m/s^2 \\cdot 8 \\, s) = 10 + 16 = 26 \\, m/s $$.', difficulty: 2 },
+                { type: 'calculation', question: 'Un coche que va a 30 m/s frena con una aceleración de $$ -6 \\, m/s^2 $$. ¿Cuánto tiempo tarda en detenerse?', formula: '$$ v_f = v_i + a \\cdot t $$', given: { vi: 30, vf: 0, a: -6, unit_v: 'm/s', unit_a: 'm/s²' }, options: ['3 s', '4 s', '5 s', '6 s'], correct: 2, explanation: 'Detenerse significa $$v_f = 0$$. Despejamos el tiempo: $$ t = \\frac{v_f - v_i}{a} = \\frac{0 - 30}{-6} = 5 \\, s $$.', difficulty: 2 },
+                { type: 'calculation', question: 'Un avión necesita alcanzar una velocidad de 80 m/s para despegar. Si parte del reposo y la pista mide 1600 m, ¿qué aceleración mínima necesita?', formula: '$$ v_f^2 = v_i^2 + 2ad $$', given: { vf: 80, vi: 0, d: 1600, unit_v: 'm/s', unit_d: 'm' }, options: ['1 m/s²', '2 m/s²', '4 m/s²', '8 m/s²'], correct: 1, explanation: 'Usamos la ecuación de Torricelli. Despejando la aceleración: $$ a = \\frac{v_f^2 - v_i^2}{2d} = \\frac{80^2 - 0^2}{2 \\cdot 1600} = \\frac{6400}{3200} = 2 \\, m/s^2 $$.', difficulty: 3 },
+                { type: 'theory', question: 'Si la aceleración de un objeto es cero, el objeto:', options: ['Está obligatoriamente en reposo', 'Está obligatoriamente en MRU', 'Puede estar en reposo o en MRU', 'Está obligatoriamente en MRUA'], correct: 2, explanation: 'Aceleración cero significa que la velocidad no cambia. Esto ocurre si el objeto está quieto (velocidad cero) o si se mueve con velocidad constante (MRU).', difficulty: 2 },
+                { type: 'calculation', question: 'Un móvil parte del reposo. En el quinto segundo de su movimiento recorre 9 metros. ¿Cuál es su aceleración?', options: ['1 m/s²', '1.5 m/s²', '2 m/s²', '2.5 m/s²'], correct: 2, explanation: 'La distancia recorrida en el n-ésimo segundo es $$d_n = v_0 + a(n - 1/2)$$. Como parte del reposo, $$9 = a(5 - 0.5) = 4.5a$$. Despejando, $$a = 9/4.5 = 2 \\, m/s^2$$.', difficulty: 3 },
+                { type: 'theory', question: 'En un MRUA, la velocidad media es igual a:', options: ['La velocidad inicial', 'La velocidad final', 'La media aritmética de la velocidad inicial y final', 'La aceleración por el tiempo'], correct: 2, explanation: 'Para un movimiento con aceleración constante, la velocidad media durante un intervalo se puede calcular como $$ \\bar{v} = \\frac{v_i + v_f}{2} $$.', difficulty: 2 },
+                { type: 'calculation', question: 'Un coche pasa de 10 m/s a 30 m/s en 4 segundos. ¿Qué distancia recorre en ese tiempo?', formula: '$$ d = \\frac{(v_i + v_f)}{2} \\cdot t $$', given: { vi: 10, vf: 30, t: 4, unit_v: 'm/s', unit_t: 's' }, options: ['40 m', '60 m', '80 m', '100 m'], correct: 2, explanation: 'Podemos usar la fórmula de la distancia con la velocidad media: $$ d = \\frac{(10 + 30)}{2} \\cdot 4 = \\frac{40}{2} \\cdot 4 = 20 \\cdot 4 = 80 \\, m $$.', difficulty: 2 },
+                { type: 'calculation', question: 'Un objeto con aceleración $$a = 4 \\, m/s^2$$ parte de $$x_0=5\\,m$$ con $$v_0=2\\,m/s$$. ¿Cuál es su posición a los 3 segundos?', formula: '$$x = x_0 + v_0 t + \\frac{1}{2}at^2$$', given: {x0: 5, v0: 2, a: 4, t: 3}, options: ['29 m', '23 m', '35 m', '18 m'], correct: 0, explanation: 'Sustituyendo en la ecuación completa: $$x = 5 + 2(3) + \\frac{1}{2}(4)(3^2) = 5 + 6 + 2(9) = 11 + 18 = 29 \\, m$$.', difficulty: 3},
+                { type: 'theory', question: 'Si un objeto tiene velocidad positiva y aceleración negativa, el objeto está...', options: ['Acelerando', 'Frenando', 'Moviéndose a velocidad constante', 'En reposo'], correct: 1, explanation: 'Cuando los vectores velocidad y aceleración tienen sentidos opuestos, el módulo de la velocidad disminuye, es decir, el objeto está frenando o desacelerando.', difficulty: 2 },
+            ],
+            
+            mcu: [
+                { type: 'theory', question: 'En un Movimiento Circular Uniforme (MCU), ¿qué magnitud permanece constante?', options: ['El vector velocidad lineal', 'El vector aceleración centrípeta', 'El módulo de la velocidad lineal (rapidez)', 'El vector posición'], correct: 2, explanation: 'En un MCU, la rapidez (el módulo del vector velocidad) es constante, pero la dirección del vector velocidad cambia continuamente, por lo que el vector velocidad no es constante.', difficulty: 2 },
+                { type: 'calculation', question: 'Un satélite orbita la Tierra en un círculo de radio 7000 km con un período de 90 minutos. ¿Cuál es su velocidad angular $$ \\omega $$ en rad/s?', formula: '$$ \\omega = \\frac{2\\pi}{T} $$', given: { T: 5400, unit_T: 's' }, options: ['0.00116 rad/s', '0.0698 rad/s', '1.16 rad/s', '0.11 rad/s'], correct: 0, explanation: 'Primero, convierte el período a segundos: $$ T = 90 \\, min \\cdot 60 \\, s/min = 5400 \\, s $$. Luego, calcula la velocidad angular: $$ \\omega = \\frac{2\\pi}{5400 \\, s} \\approx 0.00116 \\, rad/s $$.', difficulty: 3 },
+                { type: 'calculation', question: 'Un objeto en una trayectoria circular de 2 m de radio se mueve a una rapidez constante de 6 m/s. ¿Cuál es su aceleración centrípeta?', formula: '$$ a_c = \\frac{v^2}{r} $$', given: { v: 6, r: 2, unit_v: 'm/s', unit_r: 'm' }, options: ['12 m/s²', '3 m/s²', '18 m/s²', '36 m/s²'], correct: 2, explanation: 'La aceleración centrípeta se calcula como $$ a_c = \\frac{(6 \\, m/s)^2}{2 \\, m} = \\frac{36}{2} = 18 \\, m/s^2 $$.', difficulty: 2 },
+                { type: 'theory', question: 'La aceleración en un MCU se llama "centrípeta" porque...', options: ['Siempre apunta hacia afuera del círculo', 'Es tangente a la trayectoria', 'Siempre apunta hacia el centro del círculo', 'Es siempre cero'], correct: 2, explanation: 'La aceleración centrípeta es la responsable de cambiar la dirección del vector velocidad, y para lograr una trayectoria circular, debe apuntar constantemente hacia el centro de la circunferencia.', difficulty: 2 },
+                { type: 'theory', question: '¿Cuál es la relación entre período (T) y frecuencia (f)?', options: ['$$ T = f $$', '$$ T = 1/f $$', '$$ T = 2\\pi f $$', '$$ T = f^2 $$'], correct: 1, explanation: 'El período (T) es el tiempo de una vuelta completa, mientras que la frecuencia (f) es el número de vueltas por segundo. Son inversamente proporcionales: $$ T = 1/f $$ y $$ f = 1/T $$.', difficulty: 1 },
+                { type: 'calculation', question: 'Un vinilo gira a 33 revoluciones por minuto (rpm). ¿Cuál es su frecuencia en Hertz (Hz)?', formula: '$$ f(Hz) = \\frac{rpm}{60} $$', given: { rpm: 33 }, options: ['1.82 Hz', '33 Hz', '0.55 Hz', '2.07 Hz'], correct: 2, explanation: 'Revoluciones por minuto (rpm) significa vueltas/minuto. Para pasar a vueltas/segundo (Hz), dividimos por 60. $$ f = \\frac{33}{60} = 0.55 \\, Hz $$.', difficulty: 2 },
+                { type: 'calculation', question: 'Una rueda de 0.5 m de radio gira con una velocidad angular de 4 rad/s. ¿Cuál es la velocidad lineal de un punto en el borde?', formula: '$$ v = \\omega \\cdot r $$', given: { w: 4, r: 0.5, unit_w: 'rad/s', unit_r: 'm' }, options: ['1 m/s', '2 m/s', '4 m/s', '8 m/s'], correct: 1, explanation: 'La velocidad lineal (o tangencial) se relaciona con la angular mediante $$ v = \\omega \\cdot r = 4 \\, rad/s \\cdot 0.5 \\, m = 2 \\, m/s $$.', difficulty: 2 },
+                { type: 'theory', question: 'Si un objeto en MCU duplica su rapidez (y mantiene el radio), su aceleración centrípeta...', options: ['Se duplica', 'Se reduce a la mitad', 'Se cuadruplica', 'No cambia'], correct: 2, explanation: 'La aceleración centrípeta es $$ a_c = v^2/r $$. Si la velocidad $$v$$ se duplica a $$2v$$, la nueva aceleración será $$ (2v)^2/r = 4v^2/r $$, es decir, se cuadruplica.', difficulty: 3 },
+                { type: 'calculation', question: 'La Luna tiene un período orbital de unos 27.3 días. ¿Cuál es su frecuencia orbital en $$días^{-1}$$?', formula: '$$ f = 1/T $$', given: { T: 27.3, unit_T: 'días' }, options: ['27.3', '0.0366', '1', '745'], correct: 1, explanation: 'La frecuencia es la inversa del período. $$ f = 1 / 27.3 \\, días \\approx 0.0366 \\, días^{-1} $$.', difficulty: 2 },
+                { type: 'theory', question: 'En un MCU, ¿existe aceleración tangencial?', options: ['Sí, es constante', 'Sí, es variable', 'No, es siempre cero', 'Solo al principio'], correct: 2, explanation: 'La aceleración tangencial es la responsable de cambiar el módulo de la velocidad (la rapidez). Como en un MCU la rapidez es constante, la aceleración tangencial es nula. Solo hay aceleración normal o centrípeta.', difficulty: 2 },
+                { type: 'calculation', question: 'Un coche toma una curva de 50 m de radio a 72 km/h. ¿Cuál es su aceleración centrípeta?', formula: '$$ a_c = v^2/r $$', given: { v_kmh: 72, r: 50, unit_r: 'm' }, options: ['1.44 m/s²', '103.68 m/s²', '8 m/s²', '4 m/s²'], correct: 2, explanation: 'Primero, convierte la velocidad a m/s: $$ 72 \\, km/h = 20 \\, m/s $$. Luego, calcula la aceleración: $$ a_c = \\frac{(20 \\, m/s)^2}{50 \\, m} = \\frac{400}{50} = 8 \\, m/s^2 $$.', difficulty: 3 },
+                { type: 'theory', question: '¿Cuál es la unidad de la velocidad angular en el SI?', options: ['Grados por segundo', 'Revoluciones por minuto', 'Hertz', 'Radianes por segundo'], correct: 3, explanation: 'Aunque se usan otras unidades, la unidad fundamental de la velocidad angular en el SI es el radián por segundo (rad/s).', difficulty: 1 },
+                { type: 'calculation', question: 'Un punto en un disco que gira a 5 rad/s está a 10 cm del centro. ¿Cuál es su velocidad lineal?', formula: '$$ v = \\omega r $$', given: { w: 5, r_cm: 10 }, options: ['50 m/s', '5 m/s', '0.5 m/s', '2 m/s'], correct: 2, explanation: 'Primero, convierte el radio a metros: $$ 10 \\, cm = 0.1 \\, m $$. Luego, calcula la velocidad: $$ v = 5 \\, rad/s \\cdot 0.1 \\, m = 0.5 \\, m/s $$.', difficulty: 2 },
+                { type: 'theory', question: 'El movimiento de las manecillas de un reloj convencional es un ejemplo de...', options: ['MRU', 'MCUA', 'MCU', 'Caída Libre'], correct: 2, explanation: 'Las manecillas de un reloj se mueven con una velocidad angular constante, describiendo círculos. Por tanto, es un ejemplo clásico de Movimiento Circular Uniforme (MCU).', difficulty: 1 },
+                { type: 'calculation', question: 'Calcula el período del segundero de un reloj.', options: ['1 s', '12 s', '60 s', '3600 s'], correct: 2, explanation: 'El período es el tiempo que tarda en dar una vuelta completa. El segundero de un reloj tarda 60 segundos en completar una revolución.', difficulty: 1 },
+             ],
+            
+            gravedad: [
+                { type: 'theory', question: 'Si se dejan caer una pluma y una bola de bolos desde la misma altura en el vacío, ¿cuál llega primero al suelo?', options: ['La bola de bolos', 'La pluma', 'Llegan al mismo tiempo', 'Depende de la altura'], correct: 2, explanation: 'En ausencia de resistencia del aire (en el vacío), todos los objetos caen con la misma aceleración (g), independientemente de su masa. Por lo tanto, llegan al suelo simultáneamente.', difficulty: 2 },
+                { type: 'calculation', question: 'Se lanza una piedra hacia arriba con una velocidad inicial de 20 m/s. ¿Cuánto tiempo tarda en alcanzar su altura máxima? (Usa $$ g = 10 \\, m/s^2 $$)', formula: '$$ v_f = v_i - g t $$', given: { vi: 20, vf: 0, g: 10, unit_v: 'm/s', unit_g: 'm/s²' }, options: ['1 s', '2 s', '4 s', '10 s'], correct: 1, explanation: 'En la altura máxima, la velocidad final es $$ v_f = 0 $$. Despejando el tiempo de la fórmula: $$ t = \\frac{v_i - v_f}{g} = \\frac{20 - 0}{10} = 2 \\, s $$.', difficulty: 2 },
+                { type: 'calculation', question: '¿Desde qué altura se debe dejar caer un objeto para que golpee el suelo en 3 segundos? (Usa $$ g = 10 \\, m/s^2 $$)', formula: '$$ h = \\frac{1}{2} g t^2 $$', given: { t: 3, g: 10, unit_t: 's', unit_g: 'm/s²' }, options: ['30 m', '90 m', '45 m', '15 m'], correct: 2, explanation: 'Partiendo del reposo, la altura es $$ h = \\frac{1}{2} \\cdot 10 \\, m/s^2 \\cdot (3 \\, s)^2 = 5 \\cdot 9 = 45 \\, m $$.', difficulty: 2 },
+                { type: 'theory', question: 'En el punto más alto de un lanzamiento vertical, la aceleración del objeto es:', options: ['Cero', 'Máxima', 'Igual a g, hacia abajo', 'Igual a g, hacia arriba'], correct: 2, explanation: 'Aunque la velocidad es momentáneamente cero en el punto más alto, la fuerza de la gravedad sigue actuando sobre el objeto. Por lo tanto, su aceleración sigue siendo g, apuntando hacia abajo.', difficulty: 3 },
+                { type: 'theory', question: 'El movimiento de caída libre es un caso particular de:', options: ['MRU', 'MCU', 'MRUA', 'Movimiento ondulatorio'], correct: 2, explanation: 'La caída libre (despreciando el rozamiento) es un Movimiento Rectilíneo Uniformemente Acelerado (MRUA) donde la aceleración constante es la de la gravedad, g.', difficulty: 1 },
+                { type: 'calculation', question: 'Se deja caer un objeto desde 80 m de altura. ¿Con qué velocidad llega al suelo? (Usa $$ g = 10 \\, m/s^2 $$)', formula: '$$ v_f^2 = v_i^2 + 2gh $$', given: { h: 80, g: 10, vi: 0, unit_h: 'm', unit_g: 'm/s²' }, options: ['20 m/s', '30 m/s', '40 m/s', '80 m/s'], correct: 2, explanation: 'Usando la ecuación de Torricelli para caída libre ($$v_i=0$$): $$ v_f^2 = 2gh \\Rightarrow v_f = \\sqrt{2gh} = \\sqrt{2 \\cdot 10 \\cdot 80} = \\sqrt{1600} = 40 \\, m/s $$.', difficulty: 3 },
+                { type: 'theory', question: 'Si lanzas un objeto hacia arriba, el tiempo que tarda en subir es...', options: ['Mayor que el tiempo que tarda en bajar', 'Menor que el tiempo que tarda en bajar', 'Igual al tiempo que tarda en bajar', 'La mitad del tiempo de bajada'], correct: 2, explanation: 'Despreciando la resistencia del aire, la trayectoria de un lanzamiento vertical es simétrica. El objeto tarda el mismo tiempo en alcanzar la altura máxima que en volver desde esa altura al punto de lanzamiento.', difficulty: 2 },
+                { type: 'calculation', question: 'Un astronauta en la Luna deja caer un martillo desde 1.6 m de altura y tarda 2 s en caer. ¿Cuál es la gravedad en la Luna?', formula: '$$ h = \\frac{1}{2} g t^2 $$', given: { h: 1.6, t: 2, unit_h: 'm', unit_t: 's' }, options: ['9.8 m/s²', '1.6 m/s²', '0.8 m/s²', '0.4 m/s²'], correct: 2, explanation: 'Despejamos g de la fórmula de caída libre: $$ g = \\frac{2h}{t^2} = \\frac{2 \\cdot 1.6}{2^2} = \\frac{3.2}{4} = 0.8 \\, m/s^2 $$.', difficulty: 3 },
+                { type: 'calculation', question: '¿Qué altura máxima alcanza un proyectil lanzado verticalmente hacia arriba a 50 m/s? (Usa $$ g = 10 \\, m/s^2 $$)', formula: '$$ h_{max} = \\frac{v_i^2}{2g} $$', given: { vi: 50, g: 10, unit_v: 'm/s', unit_g: 'm/s²' }, options: ['50 m', '100 m', '125 m', '250 m'], correct: 2, explanation: 'En la altura máxima, $$v_f=0$$. De la ecuación $$ v_f^2 = v_i^2 - 2gh $$, despejamos h: $$ h = \\frac{v_i^2}{2g} = \\frac{50^2}{2 \\cdot 10} = \\frac{2500}{20} = 125 \\, m $$.', difficulty: 2 },
+                { type: 'theory', question: 'En un lanzamiento vertical hacia arriba, la velocidad y la aceleración tienen:', options: ['El mismo sentido siempre', 'Sentidos opuestos en la subida y el mismo en la bajada', 'El mismo sentido en la subida y opuestos en la bajada', 'Sentidos opuestos siempre'], correct: 1, explanation: 'Durante la subida, la velocidad es hacia arriba (+) y la gravedad hacia abajo (-). Durante la bajada, tanto la velocidad como la gravedad apuntan hacia abajo (-).', difficulty: 2 },
+                { type: 'calculation', question: 'Se lanza una pelota hacia abajo desde un acantilado con $$v_i=5$$ m/s. ¿Qué velocidad tiene tras 3 segundos? (Usa $$g=10 \\, m/s^2$$)', formula: '$$v_f = v_i + gt$$', given: { vi: 5, t: 3, g: 10 }, options: ['15 m/s', '30 m/s', '35 m/s', '50 m/s'], correct: 2, explanation: 'Como la velocidad inicial y la gravedad tienen el mismo sentido (hacia abajo), se suman: $$v_f = 5 + 10 \\cdot 3 = 5 + 30 = 35 \\, m/s$$.', difficulty: 2 },
+                { type: 'theory', question: 'Si la resistencia del aire es considerable, ¿qué objeto cae más rápido, una hoja de papel extendida o una bola de papel?', options: ['La hoja extendida', 'La bola de papel', 'Caen igual', 'No se puede saber'], correct: 1, explanation: 'La resistencia del aire depende de la forma y la velocidad. La hoja extendida tiene más superficie y sufre una mayor resistencia del aire, por lo que cae más lentamente que la bola de papel, que es más aerodinámica.', difficulty: 1 },
+                { type: 'calculation', question: 'Un objeto en caída libre pasa por un punto A con velocidad de 10 m/s y luego por un punto B con 30 m/s. ¿Qué distancia hay entre A y B? (Usa $$g=10 \\, m/s^2$$)', formula: '$$ v_f^2 = v_i^2 + 2gh $$', given: { vi: 10, vf: 30, g: 10 }, options: ['20 m', '40 m', '80 m', '100 m'], correct: 1, explanation: 'Usamos $$ v_f^2 = v_i^2 + 2gh $$. Despejamos h: $$ h = \\frac{v_f^2 - v_i^2}{2g} = \\frac{30^2 - 10^2}{2 \\cdot 10} = \\frac{900-100}{20} = \\frac{800}{20} = 40 \\, m$$.', difficulty: 3 },
+                { type: 'theory', question: 'El valor de la aceleración de la gravedad "g"...', options: ['Es el mismo en todo el universo', 'Es constante en toda la superficie de la Tierra', 'Varía ligeramente con la altitud y la latitud', 'Depende de la masa del objeto que cae'], correct: 2, explanation: 'El valor de g no es perfectamente constante. Disminuye con la altitud y varía ligeramente con la latitud debido a la rotación de la Tierra y a que no es una esfera perfecta.', difficulty: 2 },
+                { type: 'calculation', question: 'Se lanza un objeto hacia arriba y tarda 6 segundos en volver al punto de partida. ¿Qué velocidad inicial tenía? (Usa $$g=10 \\, m/s^2$$)', options: ['60 m/s', '10 m/s', '30 m/s', '120 m/s'], correct: 2, explanation: 'El tiempo total de vuelo es 6s, por lo que el tiempo de subida es 3s. En la altura máxima, $$v_f=0$$. Usando $$v_f = v_i - gt_{subida}$$, tenemos $$0 = v_i - 10 \\cdot 3$$, de donde $$v_i = 30 \\, m/s$$.', difficulty: 3 },
+            ],
+            
+            parabolico: [
+                { type: 'theory', question: 'En un tiro parabólico, ¿en qué punto de la trayectoria la velocidad vertical es cero?', options: ['Al inicio', 'Al final', 'En la altura máxima', 'Nunca es cero'], correct: 2, explanation: 'El proyectil sube hasta que su velocidad vertical se anula por efecto de la gravedad. En ese instante, ha alcanzado la altura máxima de su trayectoria y comienza a descender.', difficulty: 2 },
+                { type: 'calculation', question: 'Un cañón dispara un proyectil con un ángulo de 45° y una velocidad inicial de 100 m/s. ¿Cuál es la componente horizontal de la velocidad inicial? ($$\\cos(45°) \\approx 0.707$$)', formula: '$$ v_{ix} = v_i \\cos(\\theta) $$', given: { vi: 100, theta: 45, unit_v: 'm/s' }, options: ['50 m/s', '100 m/s', '70.7 m/s', '86.6 m/s'], correct: 2, explanation: 'La componente horizontal de la velocidad es $$ v_{ix} = 100 \\, m/s \\cdot \\cos(45°) \\approx 100 \\cdot 0.707 = 70.7 \\, m/s $$. Esta componente permanece constante durante todo el vuelo (despreciando la resistencia del aire).', difficulty: 2 },
+                { type: 'theory', question: '¿Bajo qué ángulo de lanzamiento se consigue el máximo alcance horizontal?', options: ['30°', '45°', '60°', '90°'], correct: 1, explanation: 'Despreciando la resistencia del aire y para un terreno plano, el alcance máximo se logra con un ángulo de lanzamiento de 45°. La fórmula del alcance es $$ R = \\frac{v_i^2 \\sin(2\\theta)}{g} $$, y $$ \\sin(2\\theta) $$ es máximo (igual a 1) cuando $$ 2\\theta = 90° $$, es decir, $$ \\theta = 45° $$.', difficulty: 3 },
+                { type: 'theory', question: 'El movimiento de un proyectil puede descomponerse en:', options: ['Dos MRU', 'Dos MRUA', 'Un MRU en el eje x y un MRUA en el eje y', 'Un MRUA en el eje x y un MRU en el eje y'], correct: 2, explanation: 'El movimiento parabólico se analiza como la superposición de dos movimientos independientes: un Movimiento Rectilíneo Uniforme (MRU) en el eje horizontal y un Movimiento Rectilíneo Uniformemente Acelerado (MRUA) en el eje vertical (debido a la gravedad).', difficulty: 2 },
+                { type: 'theory', question: '¿Qué componente de la velocidad es constante en un tiro parabólico?', options: ['La componente vertical', 'La componente horizontal', 'Ambas', 'Ninguna'], correct: 1, explanation: 'Como no hay fuerzas horizontales (despreciando el aire), la aceleración horizontal es cero. Por lo tanto, la componente horizontal de la velocidad ($$v_x$$) permanece constante durante todo el movimiento.', difficulty: 2 },
+                { type: 'calculation', question: 'Se lanza un proyectil con $$v_{ix}=30$$ m/s y $$v_{iy}=40$$ m/s. ¿Cuál es el módulo de la velocidad inicial?', formula: '$$ v_i = \\sqrt{v_{ix}^2 + v_{iy}^2} $$', given: { vix: 30, viy: 40 }, options: ['70 m/s', '10 m/s', '50 m/s', '40 m/s'], correct: 2, explanation: 'Usando el teorema de Pitágoras, el módulo de la velocidad inicial es $$ v_i = \\sqrt{30^2 + 40^2} = \\sqrt{900 + 1600} = \\sqrt{2500} = 50 \\, m/s $$.', difficulty: 2 },
+                { type: 'calculation', question: 'Un balón es chutado con un ángulo de 30° y $$v_i=20$$ m/s. ¿Qué altura máxima alcanza? ($$\\sin(30°)=0.5, g=10 \\, m/s^2$$)', formula: '$$ h_{max} = \\frac{(v_i \\sin\\theta)^2}{2g} $$', given: { vi: 20, theta: 30, g: 10 }, options: ['5 m', '10 m', '15 m', '20 m'], correct: 0, explanation: 'Primero, la velocidad vertical inicial es $$ v_{iy} = 20 \\cdot \\sin(30°) = 20 \\cdot 0.5 = 10 \\, m/s $$. La altura máxima es $$ h_{max} = \\frac{v_{iy}^2}{2g} = \\frac{10^2}{2 \\cdot 10} = \\frac{100}{20} = 5 \\, m $$.', difficulty: 3 },
+                { type: 'theory', question: 'En un tiro parabólico, la aceleración del proyectil en el punto más alto es:', options: ['Cero', 'Horizontal', 'Igual a g, hacia abajo', 'Igual a g, hacia arriba'], correct: 2, explanation: 'La única aceleración que actúa sobre el proyectil en todo momento (despreciando el aire) es la de la gravedad, g, que siempre es vertical y hacia abajo, incluso en el punto de máxima altura.', difficulty: 2 },
+                { type: 'calculation', question: 'Se lanza una piedra horizontalmente desde un acantilado de 20 m de altura. ¿Cuánto tiempo tarda en llegar al agua? (g=10 m/s²)', formula: '$$ t = \\sqrt{2h/g} $$', given: { h: 20, g: 10 }, options: ['1 s', '2 s', '3 s', '4 s'], correct: 1, explanation: 'El tiempo de caída solo depende de la altura y la gravedad, no de la velocidad horizontal. $$ t = \\sqrt{\\frac{2h}{g}} = \\sqrt{\\frac{2 \\cdot 20}{10}} = \\sqrt{4} = 2 \\, s $$.', difficulty: 2 },
+                { type: 'calculation', question: 'En el problema anterior, si la piedra se lanzó con $$v_x=15$$ m/s, ¿qué distancia horizontal recorre?', formula: '$$ x = v_x \\cdot t $$', given: { vx: 15, t: 2 }, options: ['15 m', '20 m', '30 m', '45 m'], correct: 2, explanation: 'El alcance horizontal es el producto de la velocidad horizontal (constante) y el tiempo de vuelo. $$ x = 15 \\, m/s \\cdot 2 \\, s = 30 \\, m $$.', difficulty: 2 },
+                { type: 'theory', question: '¿Para qué par de ángulos de lanzamiento (con la misma velocidad inicial) se obtiene el mismo alcance horizontal?', options: ['30° y 60°', '20° y 45°', '40° y 45°', '30° y 45°'], correct: 0, explanation: 'Se obtiene el mismo alcance para ángulos complementarios (que suman 90°), como 30° y 60°, o 20° y 70°. Esto se debe a que la función $$ \\sin(2\\theta) $$ en la fórmula del alcance tiene el mismo valor para $$ \\theta $$ y $$ 90° - \\theta $$.', difficulty: 3 },
+                { type: 'theory', question: 'La velocidad en el punto de altura máxima de un tiro parabólico:', options: ['Es cero', 'Es igual a la componente vertical de la velocidad inicial', 'Es igual a la componente horizontal de la velocidad inicial', 'Es máxima'], correct: 2, explanation: 'En el punto más alto, la componente vertical de la velocidad es cero, pero la componente horizontal ($$v_x$$) sigue siendo la misma que al principio. Por tanto, la velocidad total no es nula, sino igual a $$v_x$$.', difficulty: 3 },
+                { type: 'calculation', question: 'Se lanza un proyectil con una velocidad de 50 m/s y un ángulo de 53° ($$\\sin 53 \\approx 0.8, \\cos 53 \\approx 0.6$$). ¿Cuál es su tiempo de vuelo total? (g=10 m/s²)', formula: '$$ t_{vuelo} = \\frac{2 v_i \\sin\\theta}{g} $$', given: { vi: 50, theta: 53, g: 10 }, options: ['4 s', '6 s', '8 s', '10 s'], correct: 2, explanation: 'La velocidad vertical inicial es $$v_{iy} = 50 \\cdot \\sin 53 \\approx 50 \\cdot 0.8 = 40 \\, m/s$$. El tiempo de vuelo es $$t = \\frac{2v_{iy}}{g} = \\frac{2 \\cdot 40}{10} = 8 \\, s$$.', difficulty: 3 },
+                { type: 'calculation', question: 'Con los datos del problema anterior, ¿cuál es el alcance horizontal?', formula: '$$ R = v_x \\cdot t_{vuelo} $$', given: { vi: 50, theta: 53, t: 8 }, options: ['240 m', '320 m', '400 m', '500 m'], correct: 0, explanation: 'La velocidad horizontal es $$v_x = 50 \\cdot \\cos 53 \\approx 50 \\cdot 0.6 = 30 \\, m/s$$. El alcance es $$ R = v_x \\cdot t = 30 \\, m/s \\cdot 8 \\, s = 240 \\, m $$.', difficulty: 3 },
+                { type: 'theory', question: 'Un bombardero vuela horizontalmente a velocidad constante y suelta una bomba. Despreciando el aire, ¿dónde caerá la bomba?', options: ['Detrás del avión', 'Delante del avión', 'Directamente debajo del avión', 'Depende de la altura'], correct: 2, explanation: 'La bomba conserva la velocidad horizontal del avión. Como ambos tienen la misma $$v_x$$ y no hay aceleración horizontal, ambos recorren la misma distancia horizontal en el mismo tiempo. La bomba caerá justo debajo de donde esté el avión.', difficulty: 2 },
+            ]
+        };
+
+        // C O M E N T A R I O: Funciones principales del juego
+        function initializeGame() {
+            elements.ctx = elements.canvas.getContext('2d');
+            resizeCanvas();
+            resetGameState();
+            setupEventListeners();
+            initializeStars();
+            initializeCosmicObjects();
+            audioSystem = new AudioSystem();
+            updateSelectedTopics();
+            updateUI();
+            gameLoop();
+            console.log('🚀 Academia Espacial inicializada correctamente');
+        }
+
+        function resizeCanvas() {
+            const wrapper = document.querySelector('.game-wrapper');
+            const statsHeight = document.querySelector('.stats-bar').offsetHeight;
+            const controlsHeight = document.querySelector('.controls-container').offsetHeight;
+            const footerHeight = document.querySelector('.galactic-footer').offsetHeight;
+            
+            elements.canvas.width = window.innerWidth;
+            elements.canvas.height = wrapper.clientHeight - statsHeight - controlsHeight - footerHeight;
+            
+            if (gameState && gameState.spaceship) {
+                gameState.spaceship.x = elements.canvas.width / 4;
+                gameState.spaceship.y = elements.canvas.height / 2;
+                gameState.spaceship.targetX = gameState.spaceship.x;
+                gameState.spaceship.targetY = gameState.spaceship.y;
+            }
+        }
+
+        function resetGameState() {
+            const levelValue = parseInt(elements.levelSelect.value);
+            const selectedTopics = Array.from(elements.topicCheckboxes)
+                .filter(checkbox => checkbox.checked)
+                .map(checkbox => checkbox.value);
+            
+            if (selectedTopics.length === 0) {
+                selectedTopics.push('magnitudes');
+                document.getElementById('topicMagnitudes').checked = true;
+            }
+            
+            gameState = {
+                isGameActive: false,
+                isPaused: false,
+                currentLevel: levelValue,
+                selectedTopics: selectedTopics,
+                lives: CONFIG.INITIAL_LIVES,
+                score: 0,
+                questionsAnswered: 0,
+                correctAnswers: 0,
+                currentLevelProgress: 0,
+                currentQuestion: null,
+                selectedAnswer: null,
+                particles: [],
+                stars: [],
+                spaceship: {
+                    x: elements.canvas.width / 4,
+                    y: elements.canvas.height / 2,
+                    targetX: elements.canvas.width / 4,
+                    targetY: elements.canvas.height / 2,
+                    trail: [],
+                    angle: 0
+                },
+                cosmicObjects: { meteorites: [], planets: [], comets: [] },
+                animationId: gameState.animationId || null
+            };
+        }
+        
+        function initializeStars() {
+            gameState.stars = [];
+            for (let i = 0; i < CONFIG.MAX_STARS; i++) {
+                gameState.stars.push({
+                    x: Math.random() * elements.canvas.width,
+                    y: Math.random() * elements.canvas.height,
+                    speed: 0.1 + Math.random() * 0.5,
+                    radius: Math.random() * 2,
+                    alpha: 0.3 + Math.random() * 0.7,
+                    twinkleSpeed: Math.random() * 0.02,
+                    color: Math.random() > 0.8 ? '#ff00ff' : '#ffffff'
+                });
+            }
+        }
+
+        function initializeCosmicObjects() {
+            const config = CONFIG.COSMIC_OBJECTS;
+            gameState.cosmicObjects = { meteorites: [], planets: [], comets: [] };
+            
+            for (let i = 0; i < config.meteorites.count; i++) {
+                gameState.cosmicObjects.meteorites.push(createCosmicObject('meteorite'));
+            }
+            
+            const planetColors = ['🪐', '🌍', '🌕', '🔴', '🟠', '🟡', '🟢', '🔵', '🟣'];
+            for (let i = 0; i < config.planets.count; i++) {
+                const planet = {
+                    type: 'planet',
+                    x: (elements.canvas.width / (config.planets.count + 1)) * (i + 1),
+                    y: 100 + Math.random() * (elements.canvas.height - 200),
+                    speed: 0,
+                    size: config.planets.size + Math.random() * 20,
+                    angle: 0,
+                    rotationSpeed: (Math.random() - 0.5) * 0.05,
+                    hasCollided: false,
+                    trail: null,
+                    emoji: planetColors[i % planetColors.length],
+                    pulsePhase: Math.random() * Math.PI * 2
+                };
+                gameState.cosmicObjects.planets.push(planet);
+            }
+            
+            for (let i = 0; i < config.comets.count; i++) {
+                gameState.cosmicObjects.comets.push(createCosmicObject('comet'));
+            }
+        }
+
+        function createCosmicObject(type) {
+            const config = CONFIG.COSMIC_OBJECTS[type + 's'];
+            return {
+                type: type,
+                x: elements.canvas.width + Math.random() * 500,
+                y: Math.random() * elements.canvas.height,
+                speed: config.speed + Math.random() * 0.5,
+                size: config.size + Math.random() * 10,
+                angle: Math.random() * Math.PI * 2,
+                rotationSpeed: (Math.random() - 0.5) * 0.1,
+                hasCollided: false,
+                trail: type === 'comet' ? [] : null
+            };
+        }
+
+        function setupEventListeners() {
+            elements.startButton.addEventListener('click', startGame);
+            elements.pauseButton.addEventListener('click', togglePause);
+            elements.helpButton.addEventListener('click', showHelpModal);
+            elements.resetButton.addEventListener('click', resetGame);
+            
+            document.getElementById('soundButton').addEventListener('click', () => {
+                if (audioSystem) {
+                    const enabled = audioSystem.toggle();
+                    document.getElementById('soundButton').innerHTML = enabled ? '🔊 Sonido' : '🔇 Mudo';
+                }
+            });
+            
+            elements.levelSelect.addEventListener('change', () => {
+                gameState.currentLevel = parseInt(elements.levelSelect.value);
+                updateUI();
+            });
+            
+            elements.topicCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', (e) => {
+                    updateSelectedTopics();
+                    updateTopicDisplay();
+                });
+            });
+            
+            elements.answerButton.addEventListener('click', submitAnswer);
+            elements.nextButton.addEventListener('click', continueAfterFeedback);
+            document.getElementById('closeHelp').addEventListener('click', closeModal);
+            document.getElementById('nextLevelButton').addEventListener('click', advanceLevel);
+            document.getElementById('resumeButton').addEventListener('click', resumeGame);
+            document.getElementById('restartFromPause').addEventListener('click', resetGame);
+            
+            elements.canvas.addEventListener('mousemove', (e) => {
+                const rect = elements.canvas.getBoundingClientRect();
+                gameState.spaceship.targetX = e.clientX - rect.left;
+                gameState.spaceship.targetY = e.clientY - rect.top;
+            });
+            
+            elements.canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                const rect = elements.canvas.getBoundingClientRect();
+                const touch = e.touches[0];
+                gameState.spaceship.targetX = touch.clientX - rect.left;
+                gameState.spaceship.targetY = touch.clientY - rect.top;
+            }, { passive: false });
+            
+            window.addEventListener('resize', () => {
+                resizeCanvas();
+                initializeStars();
+                initializeCosmicObjects();
+            });
+            
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        closeModal();
+                    }
+                });
+            });
+        }
+
+        function startGame() {
+            if (gameState.isGameActive) return;
+            
+            gameState.isGameActive = true;
+            gameState.isPaused = false;
+            elements.startButton.disabled = true;
+            elements.pauseButton.disabled = false;
+            
+            createParticleExplosion(elements.canvas.width / 2, elements.canvas.height / 2, 30);
+            
+            setTimeout(() => {
+                showNextQuestion();
+            }, 1000);
+            
+            updateUI();
+        }
+
+        function togglePause() {
+            if (!gameState.isGameActive) return;
+            gameState.isPaused = !gameState.isPaused;
+            if (gameState.isPaused) {
+                elements.pauseModal.style.display = 'flex';
+            } else {
+                resumeGame();
+            }
+        }
+
+        function resumeGame() {
+            gameState.isPaused = false;
+            closeModal();
+        }
+
+        function resetGame() {
+            if (gameState.animationId) {
+                cancelAnimationFrame(gameState.animationId);
+                gameState.animationId = null;
+            }
+            resetGameState();
+            elements.startButton.disabled = false;
+            elements.pauseButton.disabled = true;
+            closeModal();
+            initializeStars();
+            initializeCosmicObjects();
+            updateUI();
+            gameLoop();
+        }
+
+        function updateSelectedTopics() {
+            const selectedTopics = Array.from(elements.topicCheckboxes)
+                .filter(checkbox => checkbox.checked)
+                .map(checkbox => checkbox.value);
+            
+            if (selectedTopics.length === 0) {
+                document.getElementById('topicMagnitudes').checked = true;
+                selectedTopics.push('magnitudes');
+            }
+            gameState.selectedTopics = selectedTopics;
+        }
+
+        function showNextQuestion() {
+            if (!gameState.isGameActive || gameState.isPaused) return;
+            
+            const requiredQuestions = CONFIG.LEVELS[gameState.currentLevel].questions;
+            if (gameState.currentLevelProgress >= requiredQuestions) {
+                completeLevel();
+                return;
+            }
+            
+            const allQuestions = gameState.selectedTopics.flatMap(topic => 
+                (questionDatabase[topic] || []).map(q => ({...q, topic: topic}))
+            );
+            
+            if (allQuestions.length === 0) {
+                console.warn('No hay preguntas disponibles para los temas seleccionados');
+                alert("Por favor, selecciona al menos un tema para continuar.");
+                return;
+            }
+            
+            const randomIndex = Math.floor(Math.random() * allQuestions.length);
+            gameState.currentQuestion = allQuestions[randomIndex];
+            
+            displayQuestion();
+        }
+
+        function displayQuestion() {
+            const question = gameState.currentQuestion;
+            
+            elements.questionData.innerHTML = `
+                <div class="flex justify-between items-center flex-wrap gap-2">
+                    <span><strong>Tema:</strong> ${getTopicDisplayName(question.topic)}</span>
+                    <span><strong>Tipo:</strong> ${question.type === 'theory' ? 'Teórica' : 'Cálculo'}</span>
+                    <span><strong>Dificultad:</strong> ${'⭐'.repeat(question.difficulty || 1)}</span>
+                </div>
+            `;
+            elements.questionText.innerHTML = question.question;
+            if (question.formula) {
+                elements.questionText.innerHTML += `
+                    <div class="math-expression mt-4 text-center">
+                        <strong>Fórmula:</strong> $$${question.formula}$$
+                    </div>
+                `;
+            }
+            if (question.given) {
+                let givenData = '<div class="math-expression mt-4"><strong>Datos del Problema:</strong><br>';
+                for (const [key, value] of Object.entries(question.given)) {
+                    if (!key.startsWith('unit_') && !key.startsWith('theta')) {
+                        const unit = question.given[`unit_${key}`] || '';
+                        givenData += `$$ ${key} = ${value} \\, ${unit} $$ `;
+                    } else if (key === 'theta') {
+                        givenData += `$$ \\theta = ${value}° $$ `;
+                    }
+                }
+                givenData += '</div>';
+                elements.questionText.innerHTML += givenData;
+            }
+            
+            displayOptions();
+            elements.questionModal.style.display = 'flex';
+            renderMath(elements.questionText);
+        }
+
+        function displayOptions() {
+            elements.optionsContainer.innerHTML = '';
+            gameState.selectedAnswer = null;
+            elements.answerButton.disabled = true;
+            
+            gameState.currentQuestion.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'option-button';
+                button.innerHTML = option;
+                button.onclick = () => selectOption(index, button);
+                elements.optionsContainer.appendChild(button);
+                renderMath(button);
+            });
+        }
+        
+        function selectOption(index, buttonElement) {
+            document.querySelectorAll('.option-button').forEach(btn => btn.classList.remove('selected'));
+            buttonElement.classList.add('selected');
+            gameState.selectedAnswer = index;
+            elements.answerButton.disabled = false;
+        }
+
+        function submitAnswer() {
+            if (gameState.selectedAnswer === null) return;
+            
+            const isCorrect = gameState.selectedAnswer === gameState.currentQuestion.correct;
+            gameState.questionsAnswered++;
+            gameState.currentLevelProgress++;
+            
+            if (isCorrect) {
+                gameState.correctAnswers++;
+                gameState.score += CONFIG.POINTS_PER_CORRECT;
+                createParticleExplosion(elements.canvas.width / 2, elements.canvas.height / 2, 20);
+                if (audioSystem) audioSystem.play('success');
+                showFeedback('🎉 ¡Correcto!', 'Excelente trabajo, cadete. Tu conocimiento de física es impresionante.', true);
+            } else {
+                gameState.lives--;
+                if (audioSystem) audioSystem.play('error');
+                showFeedback('❌ Incorrecto', 'No te preocupes, los errores son parte del aprendizaje. Revisa la solución.', false);
+                if (gameState.lives <= 0) {
+                    gameOver();
+                    return;
+                }
+            }
+            elements.questionModal.style.display = 'none';
+            updateUI();
+        }
+
+        function showFeedback(title, text, isCorrect) {
+            elements.feedbackTitle.textContent = title;
+            elements.feedbackText.textContent = text;
+            const question = gameState.currentQuestion;
+            if (question.explanation) {
+                elements.solutionContainer.style.display = 'block';
+                let solutionHTML = `<h4>💡 Explicación Detallada:</h4><p>${question.explanation}</p>`;
+                if (question.type === 'calculation' && question.formula) {
+                    solutionHTML += `<div class="formula mt-3"><strong>Fórmula utilizada:</strong> $$${question.formula}$$</div>`;
+                }
+                elements.solutionContainer.innerHTML = solutionHTML;
+            } else {
+                elements.solutionContainer.style.display = 'none';
+            }
+            elements.feedbackModal.style.display = 'flex';
+            elements.nextButton.onclick = continueAfterFeedback;
+            if (elements.solutionContainer.style.display !== 'none') {
+                renderMath(elements.solutionContainer);
+            }
+        }
+
+        function continueAfterFeedback() {
+            elements.feedbackModal.style.display = 'none';
+            setTimeout(() => { showNextQuestion(); }, 500);
+        }
+
+        function completeLevel() {
+            const levelName = CONFIG.LEVELS[gameState.currentLevel].name;
+            const accuracy = gameState.questionsAnswered > 0 ? (gameState.correctAnswers / gameState.questionsAnswered * 100).toFixed(1) : 0;
+            const bonus = gameState.currentLevel * CONFIG.LEVEL_BONUS_MULTIPLIER;
+            gameState.score += bonus;
+            if (audioSystem) audioSystem.play('levelUp');
+            
+            document.getElementById('levelUpTitle').textContent = `🏆 ¡Nivel ${gameState.currentLevel} Completado!`;
+            document.getElementById('levelUpText').innerHTML = `¡Felicidades, ${levelName}!<br>Has dominado este sector de la galaxia.`;
+            document.getElementById('levelUpStats').innerHTML = `
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div>Precisión: <span class="text-cyan-400">${accuracy}%</span></div>
+                    <div>Bonus: <span class="text-yellow-400">+${bonus} puntos</span></div>
+                    <div>Preguntas: <span class="text-green-400">${gameState.currentLevelProgress}</span></div>
+                    <div>Score Total: <span class="text-purple-400">${gameState.score}</span></div>
+                </div>`;
+            elements.levelUpModal.style.display = 'flex';
+            
+            if (gameState.currentLevel >= Object.keys(CONFIG.LEVELS).length) {
+                document.getElementById('nextLevelButton').textContent = '🎊 ¡Misión Cumplida!';
+                document.getElementById('nextLevelButton').onclick = completeGame;
+            } else {
+                 document.getElementById('nextLevelButton').textContent = '🚀 ¡Siguiente Nivel!';
+                 document.getElementById('nextLevelButton').onclick = advanceLevel;
+            }
+        }
+
+        function advanceLevel() {
+            elements.levelUpModal.style.display = 'none';
+            if (gameState.currentLevel < Object.keys(CONFIG.LEVELS).length) {
+                gameState.currentLevel++;
+                gameState.currentLevelProgress = 0;
+                elements.levelSelect.value = gameState.currentLevel;
+                updateUI();
+                setTimeout(() => { showNextQuestion(); }, 1000);
+            } else {
+                completeGame();
+            }
+        }
+
+        function completeGame() {
+            gameState.isGameActive = false;
+            closeModal();
+            const finalGrade = calculateGrade();
+            showFeedback('🌟 ¡Misión Finalizada!', `¡Felicidades, Comandante! Has completado la Academia Espacial con una calificación de ${finalGrade.toFixed(1)}/5.0. Eres oficialmente un Maestro de la Física Universal.`, true);
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => createParticleExplosion(Math.random() * elements.canvas.width, Math.random() * elements.canvas.height, 15), i * 200);
+            }
+            elements.startButton.disabled = false;
+            elements.pauseButton.disabled = true;
+        }
+
+        function gameOver() {
+            gameState.isGameActive = false;
+            showFeedback('💀 Misión Fallida', 'Te has quedado sin vidas. Pero no te rindas, los mejores físicos aprenden de sus errores y vuelven a intentarlo.', false);
+            elements.startButton.disabled = false;
+            elements.pauseButton.disabled = true;
+            elements.nextButton.textContent = '🔄 Intentar de Nuevo';
+            elements.nextButton.onclick = () => {
+                closeModal();
+                resetGame();
+            };
+        }
+
+        function updateSpaceship() {
+            const ship = gameState.spaceship;
+            const dx = ship.targetX - ship.x;
+            const dy = ship.targetY - ship.y;
+            ship.x += dx * 0.1;
+            ship.y += dy * 0.1;
+            ship.angle = Math.atan2(dy, dx);
+            ship.trail.push({ x: ship.x, y: ship.y });
+            if (ship.trail.length > CONFIG.SPACESHIP.trailLength) ship.trail.shift();
+        }
+
+        function updateCosmicObjects() {
+            if (gameState.isPaused) return;
+            Object.keys(gameState.cosmicObjects).forEach(key => {
+                 gameState.cosmicObjects[key].forEach((obj, index) => {
+                    if (obj.type !== 'planet') {
+                        obj.x -= obj.speed;
+                        obj.angle += obj.rotationSpeed;
+                        if (!obj.hasCollided && checkCollision(gameState.spaceship, obj)) {
+                            obj.hasCollided = true;
+                            handleCollision(obj);
+                        }
+                        if (obj.x < -100) {
+                            gameState.cosmicObjects[key][index] = createCosmicObject(obj.type);
+                        }
+                    } else {
+                         obj.angle += obj.rotationSpeed;
+                         obj.pulsePhase += 0.02;
+                    }
+                    if (obj.trail) {
+                        obj.trail.push({ x: obj.x + obj.size, y: obj.y });
+                        if (obj.trail.length > 15) obj.trail.shift();
+                    }
+                 });
+            });
+        }
+
+        function checkCollision(ship, obj) {
+            const dx = ship.x - obj.x;
+            const dy = ship.y - obj.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            return distance < (CONFIG.SPACESHIP.size + obj.size) / 2;
+        }
+
+        function handleCollision(obj) {
+            if (audioSystem) audioSystem.play('collision');
+            createParticleExplosion(obj.x, obj.y, 15);
+            if (obj.type === 'meteorite') {
+                showPhysicsInfo();
+            }
+        }
+
+        function showPhysicsInfo() {
+            const physicsData = [
+                { title: '🧑‍🚀 Constantes Físicas Fundamentales', content: '<strong>Velocidad de la luz (vacío):</strong> $$ c \\approx 3 \\cdot 10^8 \\, m/s $$ <br> <strong>Constante Gravitacional:</strong> $$ G \\approx 6.674 \\cdot 10^{-11} \\, \\frac{N \\cdot m^2}{kg^2} $$ <br> <strong>Constante de Planck:</strong> $$ h \\approx 6.626 \\cdot 10^{-34} \\, J \\cdot s $$' },
+                { title: '🧑‍🚀 Fórmulas Clave de Cinemática', content: '<strong>MRU:</strong> $$ d = v \\cdot t $$ <br> <strong>MRUA (distancia):</strong> $$ d = v_i t + \\frac{1}{2} a t^2 $$ <br> <strong>MRUA (velocidad):</strong> $$ v_f^2 = v_i^2 + 2 a d $$ <br> <strong>Caída Libre:</strong> $$ h = \\frac{1}{2} g t^2 $$' },
+                { title: '🧑‍🚀 Curiosidades del Universo', content: '<strong>¿Sabías que...</strong> el sonido no puede viajar en el espacio porque no hay un medio para transmitir las ondas sonoras? Las explosiones en el espacio son completamente silenciosas.' },
+                { title: '🧑‍🚀 Curiosidades de la Gravedad', content: '<strong>¿Sabías que...</strong> debido a la dilatación del tiempo gravitacional predicha por Einstein, el tiempo pasa un poco más lento para los satélites GPS que para nosotros en la Tierra? ¡Sus relojes deben ser corregidos constantemente!' },
+                { title: '🧑‍🚀 Leyes de Newton', content: '<strong>1ª Ley (Inercia):</strong> Un objeto permanece en reposo o en MRU a menos que una fuerza externa actúe sobre él. <br> <strong>2ª Ley (Fuerza):</strong> $$ \\vec{F}_{neta} = m \\cdot \\vec{a} $$ <br> <strong>3ª Ley (Acción-Reacción):</strong> Para cada acción, hay una reacción igual y opuesta.' },
+                { title: '🧑‍🚀 Energía Cinética y Potencial', content: '<strong>Energía Cinética (movimiento):</strong> $$ E_c = \\frac{1}{2} m v^2 $$ <br> <strong>Energía Potencial Gravitatoria:</strong> $$ E_p = m g h $$ <br> El principio de conservación de la energía mecánica establece que $$ E_c + E_p = constante $$ (si no hay rozamiento).' }
+            ];
+            const randomData = physicsData[Math.floor(Math.random() * physicsData.length)];
+            elements.feedbackTitle.textContent = randomData.title;
+            elements.feedbackText.innerHTML = '';
+            elements.solutionContainer.style.display = 'block';
+            elements.solutionContainer.innerHTML = randomData.content;
+            elements.feedbackModal.style.display = 'flex';
+            
+            // I N D I C A C I Ó N: Corregido el flujo. El modal de curiosidades solo se cierra, no avanza el juego.
+            elements.nextButton.textContent = "🚀 Entendido";
+            elements.nextButton.onclick = closeModal;
+
+            renderMath(elements.solutionContainer);
+        }
+
+        function createParticleExplosion(x, y, count) {
+            for (let i = 0; i < count; i++) {
+                gameState.particles.push({ x: x, y: y, vx: (Math.random() - 0.5) * 8, vy: (Math.random() - 0.5) * 8, life: 1, decay: 0.02 + Math.random() * 0.02, color: `hsl(${Math.random() * 360}, 100%, 70%)` });
+            }
+        }
+
+        function updateParticles() {
+            if (gameState.isPaused) return;
+            for (let i = gameState.particles.length - 1; i >= 0; i--) {
+                const p = gameState.particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= p.decay;
+                p.vy += 0.1;
+                if (p.life <= 0) gameState.particles.splice(i, 1);
+            }
+        }
+        
+        function updateStars() {
+            if (gameState.isPaused) return;
+            gameState.stars.forEach(star => {
+                star.x -= star.speed;
+                if (star.x < -5) star.x = elements.canvas.width + 5;
+                star.alpha += star.twinkleSpeed;
+                if (star.alpha > 1 || star.alpha < 0.3) star.twinkleSpeed *= -1;
+            });
+        }
+
+        function drawBackground() {
+            const gradient = elements.ctx.createLinearGradient(0, 0, 0, elements.canvas.height);
+            gradient.addColorStop(0, '#0a0a1f');
+            gradient.addColorStop(0.5, '#1a1a3f');
+            gradient.addColorStop(1, '#0a0a1f');
+            elements.ctx.fillStyle = gradient;
+            elements.ctx.fillRect(0, 0, elements.canvas.width, elements.canvas.height);
+        }
+
+        function drawStars() {
+            gameState.stars.forEach(star => {
+                elements.ctx.globalAlpha = star.alpha;
+                elements.ctx.fillStyle = star.color;
+                elements.ctx.beginPath();
+                elements.ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                elements.ctx.fill();
+            });
+            elements.ctx.globalAlpha = 1;
+        }
+        
+        function drawSpaceship() {
+            const ship = gameState.spaceship;
+            const ctx = elements.ctx;
+            ctx.strokeStyle = 'rgba(0, 250, 255, 0.6)';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (let i = 0; i < ship.trail.length - 1; i++) {
+                const alpha = i / ship.trail.length;
+                ctx.globalAlpha = alpha * 0.6;
+                ctx.moveTo(ship.trail[i].x, ship.trail[i].y);
+                ctx.lineTo(ship.trail[i + 1].x, ship.trail[i + 1].y);
+            }
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+            ctx.save();
+            ctx.translate(ship.x, ship.y);
+            ctx.rotate(ship.angle);
+            ctx.shadowColor = '#00faff';
+            ctx.shadowBlur = 15;
+            ctx.font = `${CONFIG.SPACESHIP.size}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🚀', 0, 0);
+            ctx.restore();
+        }
+
+        function drawCosmicObjects() {
+            const ctx = elements.ctx;
+            Object.values(gameState.cosmicObjects).flat().forEach(obj => {
+                if (obj.trail && obj.trail.length > 1) {
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    for (let i = 0; i < obj.trail.length - 1; i++) {
+                        const alpha = i / obj.trail.length;
+                        ctx.globalAlpha = alpha * 0.4;
+                        ctx.moveTo(obj.trail[i].x, obj.trail[i].y);
+                        ctx.lineTo(obj.trail[i + 1].x, obj.trail[i + 1].y);
+                    }
+                    ctx.stroke();
+                    ctx.globalAlpha = 1;
+                }
+                ctx.save();
+                ctx.translate(obj.x, obj.y);
+                ctx.rotate(obj.angle);
+                let size = obj.size;
+                if (obj.type === 'planet') {
+                    const pulse = 1 + Math.sin(obj.pulsePhase) * 0.1;
+                    size *= pulse;
+                    ctx.shadowColor = '#4466ff';
+                    ctx.shadowBlur = 15 + Math.sin(obj.pulsePhase) * 5;
+                } else {
+                    ctx.shadowColor = obj.type === 'meteorite' ? '#ff6600' : '#ffff00';
+                    ctx.shadowBlur = 10;
+                }
+                ctx.font = `${size}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(obj.type === 'planet' ? obj.emoji : '☄️', 0, 0);
+                ctx.restore();
+            });
+        }
+
+        function drawParticles() {
+            gameState.particles.forEach(p => {
+                elements.ctx.globalAlpha = p.life;
+                elements.ctx.fillStyle = p.color;
+                elements.ctx.beginPath();
+                elements.ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+                elements.ctx.fill();
+                elements.ctx.globalAlpha = 1;
+            });
+        }
+
+        function gameLoop() {
+            elements.ctx.clearRect(0, 0, elements.canvas.width, elements.canvas.height);
+            drawBackground();
+            updateStars();
+            drawStars();
+            updateSpaceship();
+            drawSpaceship();
+            updateCosmicObjects();
+            drawCosmicObjects();
+            updateParticles();
+            drawParticles();
+            gameState.animationId = requestAnimationFrame(gameLoop);
+        }
+
+        function renderMath(element) {
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                MathJax.typesetPromise([element]).catch((err) => console.error('Error al renderizar MathJax:', err));
+            }
+        }
+        
+        function updateUI() {
+            elements.level.textContent = gameState.currentLevel;
+            elements.score.textContent = gameState.score;
+            const required = CONFIG.LEVELS[gameState.currentLevel].questions;
+            elements.progress.textContent = `${gameState.currentLevelProgress}/${required}`;
+            const progressPercent = required > 0 ? (gameState.currentLevelProgress / required) * 100 : 0;
+            elements.progressFill.style.width = `${progressPercent}%`;
+            const grade = calculateGrade();
+            elements.grade.textContent = grade.toFixed(1);
+            updateLivesDisplay();
+            updateTopicDisplay();
+        }
+
+        function updateLivesDisplay() {
+            elements.lives.innerHTML = '';
+            for (let i = 0; i < CONFIG.INITIAL_LIVES; i++) {
+                const heart = document.createElement('span');
+                heart.className = `heart ${i >= gameState.lives ? 'lost' : ''}`;
+                heart.textContent = '❤️';
+                elements.lives.appendChild(heart);
+            }
+        }
+
+        function updateTopicDisplay() {
+            const topicNames = gameState.selectedTopics.map(topic => getTopicDisplayName(topic));
+            const displayText = topicNames.length > 2
+                ? `${topicNames.slice(0, 2).join(', ')} y ${topicNames.length - 2} más`
+                : topicNames.join(' y ');
+            elements.currentTopic.textContent = displayText;
+        }
+
+        function getTopicDisplayName(topic) {
+            const names = {
+                magnitudes: 'Magnitudes', si: 'Sistema SI', cinematica: 'Cinemática',
+                mru: 'MRU', mrua: 'MRUA', mcu: 'MCU', gravedad: 'Mov. Vertical',
+                parabolico: 'Mov. Parabólico'
+            };
+            return names[topic] || topic;
+        }
+
+        function calculateGrade() {
+            if (gameState.questionsAnswered === 0) return 0;
+            const accuracy = gameState.correctAnswers / gameState.questionsAnswered;
+            let grade = accuracy * 5.0;
+            const livesBonus = (gameState.lives / CONFIG.INITIAL_LIVES) * 0.25;
+            grade += livesBonus;
+            return Math.min(5.0, grade);
+        }
+
+        function showHelpModal() {
+            elements.helpModal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.style.display = 'none';
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Documento cargado. Iniciando Academia Espacial...');
+            initializeGame();
+        });
+
+        document.addEventListener('touchstart', function(event) {
+            if (event.touches.length > 1) event.preventDefault();
+        }, { passive: false });
+
+    </script>
+</body>
+</html>
