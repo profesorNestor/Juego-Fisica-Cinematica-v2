@@ -1,0 +1,485 @@
+/* ================================================
+   📐 ESTILOS DE ORIENTACIÓN ADAPTATIVA
+   Archivo: orientation-styles.css
+   ================================================ */
+
+/* 🌐 Variables para orientación */
+:root {
+    --landscape-padding: 10px;
+    --portrait-padding: 15px;
+    --landscape-font-scale: 0.8;
+    --orientation-transition: all 0.3s ease-in-out;
+    --safe-area-top: env(safe-area-inset-top, 0px);
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-left: env(safe-area-inset-left, 0px);
+    --safe-area-right: env(safe-area-inset-right, 0px);
+}
+
+/* ================================================
+   📱 CONFIGURACIÓN BASE PARA MÓVILES
+   ================================================ */
+
+/* 🔧 Scroll suave y sin rebote en iOS */
+html {
+    -webkit-overflow-scrolling: touch;
+    overflow-scrolling: touch;
+    scroll-behavior: smooth;
+}
+
+body {
+    /* 📐 Prevenir scroll horizontal no deseado */
+    overflow-x: hidden;
+    
+    /* 🎯 Transiciones suaves */
+    transition: var(--orientation-transition);
+    
+    /* 📱 Safe areas para dispositivos con notch */
+    padding-top: var(--safe-area-top);
+    padding-bottom: var(--safe-area-bottom);
+    padding-left: var(--safe-area-left);
+    padding-right: var(--safe-area-right);
+}
+
+/* ================================================
+   📱➡️ MODO HORIZONTAL MÓVIL
+   ================================================ */
+
+/* 🎮 Contenedor principal en horizontal */
+body.mobile-landscape .game-wrapper {
+    min-height: 100vh;
+    min-height: 100dvh; /* Dynamic viewport height */
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+body.mobile-landscape .game-wrapper.landscape-layout {
+    /* 📐 Optimización para pantalla horizontal */
+    padding: 5px;
+    gap: 5px;
+}
+
+/* 📊 Barra de estadísticas compacta horizontal */
+body.mobile-landscape .stats-bar.compact-horizontal {
+    padding: 8px 10px;
+    font-size: 0.7rem;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    
+    /* 📜 Scroll horizontal suave */
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+}
+
+body.mobile-landscape .stats-bar.compact-horizontal::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
+}
+
+/* 📊 Estadísticas individuales en horizontal */
+body.mobile-landscape .stats-bar.compact-horizontal .stat {
+    font-size: 0.65rem;
+    padding: 4px 8px;
+    min-width: max-content;
+    gap: 4px;
+}
+
+/* 📊 Progreso más compacto */
+body.mobile-landscape .stats-bar.compact-horizontal .progress-bar {
+    width: 40px;
+    height: 4px;
+}
+
+/* 📊 Vidas más pequeñas */
+body.mobile-landscape .heart {
+    font-size: 0.9rem;
+}
+
+/* 🎛️ Controles horizontales compactos */
+body.mobile-landscape .controls-container.horizontal-controls {
+    padding: 8px;
+    gap: 8px;
+    flex-direction: column;
+}
+
+/* 🏷️ Selector de temas más compacto */
+body.mobile-landscape .topic-switcher {
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
+body.mobile-landscape .topic-switcher label {
+    padding: 6px 8px;
+    font-size: 0.7rem;
+    border-radius: 6px;
+}
+
+/* 🎮 Botones más compactos */
+body.mobile-landscape .game-button {
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    border-radius: 8px;
+}
+
+body.mobile-landscape .control-group {
+    font-size: 0.7rem;
+    padding: 4px 8px;
+}
+
+/* 🎮 Canvas optimizado para horizontal */
+body.mobile-landscape canvas {
+    /* 📐 Asegurar que el canvas ocupe el espacio disponible */
+    flex-grow: 1;
+    min-height: 200px;
+    max-height: calc(100vh - 160px); /* Dejar espacio para controles */
+    max-height: calc(100dvh - 160px);
+}
+
+/* 👨‍🚀 Footer más compacto */
+body.mobile-landscape .galactic-footer {
+    padding: 8px;
+    font-size: 0.7rem;
+}
+
+/* ================================================
+   📱⬆️ MODO VERTICAL MÓVIL
+   ================================================ */
+
+/* 🎮 Asegurar scroll vertical cuando sea necesario */
+body.mobile-portrait .game-wrapper {
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 100vh;
+    min-height: 100dvh;
+}
+
+/* 📱 Canvas en vertical - más espacio */
+body.mobile-portrait canvas {
+    min-height: 300px;
+}
+
+/* 🏷️ Temas en grilla vertical */
+body.mobile-portrait .topic-switcher {
+    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+}
+
+/* ================================================
+   🪟 MODALES RESPONSIVOS
+   ================================================ */
+
+/* 📱 Modales en horizontal */
+body.mobile-landscape .modal-content {
+    max-width: 85vw;
+    max-height: 80vh;
+    max-height: 80dvh;
+    padding: 15px;
+    overflow-y: auto;
+    
+    /* 📐 Posicionamiento centrado */
+    margin: auto;
+}
+
+body.mobile-landscape .modal-content h2 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+}
+
+body.mobile-landscape .option-button {
+    padding: 8px;
+    font-size: 0.8rem;
+    margin: 4px 0;
+}
+
+/* 📱 Modales en vertical */
+body.mobile-portrait .modal-content {
+    max-width: 95vw;
+    max-height: 85vh;
+    max-height: 85dvh;
+    overflow-y: auto;
+}
+
+/* ================================================
+   🔄 TRANSICIONES DE ORIENTACIÓN
+   ================================================ */
+
+/* 🎯 Transiciones suaves para todos los elementos principales */
+.stats-bar,
+.controls-container,
+.topic-switcher,
+.game-button,
+.modal-content,
+canvas {
+    transition: var(--orientation-transition);
+}
+
+/* 📐 Indicador visual de cambio de orientación */
+body.orientation-landscape::before {
+    content: "📱➡️";
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 9999;
+    background: rgba(0, 250, 255, 0.2);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    opacity: 0;
+    animation: orientationIndicator 2s ease-in-out;
+}
+
+body.orientation-portrait::before {
+    content: "📱⬆️";
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 9999;
+    background: rgba(0, 250, 255, 0.2);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    opacity: 0;
+    animation: orientationIndicator 2s ease-in-out;
+}
+
+@keyframes orientationIndicator {
+    0%, 100% { opacity: 0; transform: scale(0.8); }
+    20%, 80% { opacity: 1; transform: scale(1); }
+}
+
+/* ================================================
+   📐 UTILIDADES DE ORIENTACIÓN
+   ================================================ */
+
+/* 🔧 Clases utilitarias para mostrar/ocultar según orientación */
+.landscape-only {
+    display: none;
+}
+
+.portrait-only {
+    display: block;
+}
+
+body.orientation-landscape .landscape-only {
+    display: block;
+}
+
+body.orientation-landscape .portrait-only {
+    display: none;
+}
+
+/* 📱 Clases para dispositivos específicos */
+.mobile-only {
+    display: none;
+}
+
+.desktop-only {
+    display: block;
+}
+
+body.mobile-landscape .mobile-only,
+body.mobile-portrait .mobile-only {
+    display: block;
+}
+
+body.mobile-landscape .desktop-only,
+body.mobile-portrait .desktop-only {
+    display: none;
+}
+
+/* ================================================
+   🎮 MEJORAS ESPECÍFICAS DEL JUEGO
+   ================================================ */
+
+/* 🚀 Nave espacial - ajuste de tamaño según orientación */
+body.mobile-landscape canvas {
+    cursor: crosshair;
+}
+
+/* 📊 Números más legibles en pantallas pequeñas */
+body.mobile-landscape .stat span {
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+/* 🎯 Botones más fáciles de tocar */
+body.mobile-landscape .game-button,
+body.mobile-landscape .option-button {
+    min-height: 44px; /* Tamaño mínimo recomendado para touch */
+    touch-action: manipulation; /* Optimización táctil */
+}
+
+/* ================================================
+   📱 OPTIMIZACIONES ESPECÍFICAS DE DISPOSITIVOS
+   ================================================ */
+
+/* 🍎 iPhone con notch */
+@supports (padding: max(0px)) {
+    body.mobile-landscape {
+        padding-left: max(10px, var(--safe-area-left));
+        padding-right: max(10px, var(--safe-area-right));
+    }
+    
+    body.mobile-landscape .stats-bar.compact-horizontal {
+        padding-left: max(10px, var(--safe-area-left));
+        padding-right: max(10px, var(--safe-area-right));
+    }
+}
+
+/* 🤖 Android con barra de navegación */
+body.mobile-landscape {
+    padding-bottom: max(10px, var(--safe-area-bottom));
+}
+
+/* ================================================
+   🌐 MEJORAS DE ACCESIBILIDAD
+   ================================================ */
+
+/* 🔧 Reducir animaciones si el usuario lo prefiere */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+    }
+    
+    body.orientation-landscape::before,
+    body.orientation-portrait::before {
+        animation: none;
+        opacity: 0;
+    }
+}
+
+/* 🌙 Soporte para modo oscuro del sistema */
+@media (prefers-color-scheme: dark) {
+    body {
+        /* El juego ya está en modo oscuro, pero aquí se pueden hacer ajustes */
+        background: #0a0a1f;
+    }
+}
+
+/* ================================================
+   📐 SCROLL PERSONALIZADO PARA ORIENTACIÓN
+   ================================================ */
+
+/* 📜 Scrollbar personalizado para móviles horizontales */
+body.mobile-landscape *::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+
+body.mobile-landscape *::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 2px;
+}
+
+body.mobile-landscape *::-webkit-scrollbar-thumb {
+    background: rgba(0, 250, 255, 0.5);
+    border-radius: 2px;
+}
+
+body.mobile-landscape *::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 250, 255, 0.8);
+}
+
+/* ================================================
+   🧪 CLASES DE DEBUG (SOLO DESARROLLO)
+   ================================================ */
+
+.debug-orientation {
+    position: fixed;
+    top: 50px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    color: var(--primary-color);
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    z-index: 9999;
+    font-family: monospace;
+}
+
+/* ================================================
+   📱 MEDIA QUERIES ESPECÍFICAS
+   ================================================ */
+
+/* 📐 Orientación horizontal en móviles */
+@media screen and (orientation: landscape) and (max-height: 600px) {
+    body {
+        font-size: 14px; /* Base font size smaller */
+    }
+    
+    .stats-bar {
+        padding: 6px 8px;
+    }
+    
+    .controls-container {
+        padding: 6px 8px;
+    }
+    
+    .modal-content {
+        max-height: 75vh;
+        max-height: 75dvh;
+    }
+}
+
+/* 📱 Dispositivos muy pequeños */
+@media screen and (max-width: 480px) and (orientation: landscape) {
+    .topic-switcher {
+        grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+        gap: 3px;
+    }
+    
+    .topic-switcher label {
+        padding: 4px 6px;
+        font-size: 0.65rem;
+    }
+    
+    .game-button {
+        padding: 5px 10px;
+        font-size: 0.7rem;
+    }
+}
+
+/* 📱 Dispositivos con pantalla muy alta (ratio > 2:1) */
+@media screen and (min-aspect-ratio: 2/1) {
+    body.mobile-landscape .stats-bar.compact-horizontal {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        justify-content: space-between;
+        overflow-x: auto;
+    }
+    
+    body.mobile-landscape .stats-bar.compact-horizontal .stat {
+        flex-shrink: 0;
+        min-width: auto;
+    }
+}
+
+/* ================================================
+   🎯 OPTIMIZACIONES FINALES
+   ================================================ */
+
+/* 🚀 Aceleración por hardware para transiciones */
+.game-wrapper,
+.stats-bar,
+.controls-container,
+canvas {
+    will-change: transform;
+    transform: translateZ(0);
+}
+
+/* 📱 Optimización de rendering en móviles */
+body.mobile-landscape *,
+body.mobile-portrait * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* 🔧 Prevenir zoom accidental en inputs */
+input, select, textarea, button {
+    font-size: inherit;
+    font-size: max(16px, inherit); /* Prevenir zoom en iOS */
+}
+
+console.log('📐 Estilos de orientación adaptativa cargados');

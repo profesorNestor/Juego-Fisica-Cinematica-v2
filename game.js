@@ -1,25 +1,40 @@
 // ================================================
 // 🎮 MOTOR PRINCIPAL DEL JUEGO DE FÍSICA ESPACIAL
-// Archivo: game.js - VERSIÓN MEJORADA
+// Archivo: game.js - VERSIÓN MEJORADA CON ORIENTACIÓN
 // ================================================
 
 console.log('🎮 Cargando motor del juego...');
 
 // ================================================
-// 📱 DETECCIÓN DE DISPOSITIVO Y CONFIGURACIÓN
+// 📱 DETECCIÓN DE DISPOSITIVO Y CONFIGURACIÓN EXTENDIDA
 // ================================================
 
 function getDeviceType() {
+    if (window.orientationManager) {
+        return window.orientationManager.getDeviceType();
+    }
+    
+    // Fallback si OrientationManager no está disponible
     const width = window.innerWidth;
-    if (width < 768) return 'mobile';
-    if (width < 1024) return 'tablet';
+    const height = window.innerHeight;
+    const maxDimension = Math.max(width, height);
+    const minDimension = Math.min(width, height);
+    
+    // 📱 Detección más precisa
+    if (maxDimension < 768) return 'mobile';
+    if (maxDimension < 1024) return 'tablet';
+    if (minDimension < 768) return 'mobile-large'; // Móvil grande en landscape
     return 'desktop';
 }
 
 const deviceType = getDeviceType();
 console.log('📱 Dispositivo detectado:', deviceType);
 
-// Configuración adaptable
+// ================================================
+// 📐 CONFIGURACIÓN ADAPTABLE CON ORIENTACIÓN
+// ================================================
+
+// Configuración original
 const ADAPTIVE_CONFIG = {
     desktop: { 
         MAX_STARS: 300, 
@@ -49,6 +64,97 @@ const ADAPTIVE_CONFIG = {
         SPACESHIP: { size: 18 }
     }
 };
+
+// 📐 Configuración específica para orientación
+const ORIENTATION_CONFIG = {
+    mobile: {
+        landscape: {
+            MAX_STARS: 80,
+            COSMIC_OBJECTS: {
+                meteorites: { count: 3, minSpeed: 1.0, maxSpeed: 1.5, size: 12 },
+                planets: { count: 3, speed: 0, size: 20 },
+                comets: { count: 2, minSpeed: 1.5, maxSpeed: 2.0, size: 10 }
+            },
+            SPACESHIP: { size: 16, speed: 2.5 }
+        },
+        portrait: {
+            MAX_STARS: 120,
+            COSMIC_OBJECTS: {
+                meteorites: { count: 4, minSpeed: 1.0, maxSpeed: 1.8, size: 15 },
+                planets: { count: 4, speed: 0, size: 28 },
+                comets: { count: 2, minSpeed: 1.8, maxSpeed: 2.5, size: 12 }
+            },
+            SPACESHIP: { size: 18, speed: 2 }
+        }
+    },
+    tablet: {
+        landscape: {
+            MAX_STARS: 180,
+            COSMIC_OBJECTS: {
+                meteorites: { count: 4, minSpeed: 1.2, maxSpeed: 2.0, size: 16 },
+                planets: { count: 5, speed: 0, size: 32 },
+                comets: { count: 3, minSpeed: 2.0, maxSpeed: 3.0, size: 14 }
+            },
+            SPACESHIP: { size: 20, speed: 2.2 }
+        },
+        portrait: {
+            MAX_STARS: 200,
+            COSMIC_OBJECTS: {
+                meteorites: { count: 5, minSpeed: 1.2, maxSpeed: 2.0, size: 18 },
+                planets: { count: 6, speed: 0, size: 35 },
+                comets: { count: 3, minSpeed: 2.0, maxSpeed: 3.0, size: 15 }
+            },
+            SPACESHIP: { size: 22, speed: 2 }
+        }
+    },
+    'mobile-large': {
+        landscape: {
+            MAX_STARS: 100,
+            COSMIC_OBJECTS: {
+                meteorites: { count: 3, minSpeed: 1.1, maxSpeed: 1.6, size: 14 },
+                planets: { count: 4, speed: 0, size: 24 },
+                comets: { count: 2, minSpeed: 1.6, maxSpeed: 2.2, size: 11 }
+            },
+            SPACESHIP: { size: 17, speed: 2.3 }
+        },
+        portrait: {
+            MAX_STARS: 140,
+            COSMIC_OBJECTS: {
+                meteorites: { count: 4, minSpeed: 1.1, maxSpeed: 1.9, size: 16 },
+                planets: { count: 5, speed: 0, size: 30 },
+                comets: { count: 3, minSpeed: 1.9, maxSpeed: 2.6, size: 13 }
+            },
+            SPACESHIP: { size: 19, speed: 2.1 }
+        }
+    }
+};
+
+// ================================================
+// 📐 FUNCIÓN PARA OBTENER CONFIGURACIÓN SEGÚN ORIENTACIÓN
+// ================================================
+
+function getOrientationAwareConfig() {
+    const deviceType = getDeviceType();
+    const orientation = window.orientationManager ? 
+        window.orientationManager.currentOrientation : 
+        (window.innerWidth > window.innerHeight ? 'landscape' : 'portrait');
+    
+    // 🎯 Usar configuración específica de orientación si está disponible
+    if (ORIENTATION_CONFIG[deviceType] && ORIENTATION_CONFIG[deviceType][orientation]) {
+        return {
+            deviceType,
+            orientation,
+            config: ORIENTATION_CONFIG[deviceType][orientation]
+        };
+    }
+    
+    // 🔄 Fallback a configuración original
+    return {
+        deviceType,
+        orientation,
+        config: ADAPTIVE_CONFIG[deviceType] || ADAPTIVE_CONFIG.mobile
+    };
+}
 
 // ================================================
 // 🎵 SISTEMA DE AUDIO
@@ -116,21 +222,38 @@ class AudioSystem {
 // 🎮 CONFIGURACIÓN Y ESTADO DEL JUEGO
 // ================================================
 
-const CONFIG = {
+let CONFIG = {
     INITIAL_LIVES: 5,
     POINTS_PER_CORRECT: 100,
     LEVEL_BONUS_MULTIPLIER: 50,
-    SPACESHIP: { speed: 2, ...ADAPTIVE_CONFIG[deviceType].SPACESHIP },
+    SPACESHIP: { speed: 2 },
     LEVELS: { 
         1: { questions: 10, name: "Cadete Espacial" }, 
         2: { questions: 20, name: "Piloto Avanzado" }, 
         3: { questions: 30, name: "Comandante Supremo" } 
-    },
-    ...ADAPTIVE_CONFIG[deviceType]
+    }
 };
 
 let gameState = {};
 let audioSystem = null;
+
+// ================================================
+// 🔄 FUNCIÓN PARA ACTUALIZAR CONFIGURACIÓN SEGÚN ORIENTACIÓN
+// ================================================
+
+function updateConfigForOrientation() {
+    const orientationConfig = getOrientationAwareConfig();
+    
+    // 🔄 Actualizar CONFIG global con configuración específica de orientación
+    Object.assign(CONFIG, orientationConfig.config);
+    
+    console.log('🎯 Configuración actualizada para:', {
+        device: orientationConfig.deviceType,
+        orientation: orientationConfig.orientation,
+        stars: CONFIG.MAX_STARS,
+        meteorites: CONFIG.COSMIC_OBJECTS.meteorites.count
+    });
+}
 
 // ================================================
 // 🌟 SISTEMA DE RENDERIZADO MATEMÁTICO
@@ -245,22 +368,50 @@ function initializeDOMElements() {
 }
 
 function resizeCanvas() {
-    const statsHeight = document.querySelector('.stats-bar').offsetHeight;
-    const controlsHeight = document.querySelector('.controls-container').offsetHeight;
-    const footerHeight = document.querySelector('.galactic-footer').offsetHeight;
+    const statsHeight = document.querySelector('.stats-bar').offsetHeight || 60;
+    const controlsHeight = document.querySelector('.controls-container').offsetHeight || 120;
+    const footerHeight = document.querySelector('.galactic-footer').offsetHeight || 40;
+    
+    // 📐 Considerar orientación
+    const isLandscapeMobile = window.orientationManager && 
+        window.orientationManager.isMobile() && 
+        window.orientationManager.isLandscape();
+    
+    let availableHeight = window.innerHeight - statsHeight - controlsHeight - footerHeight;
+    
+    // 📱 Ajustes específicos para móvil horizontal
+    if (isLandscapeMobile) {
+        availableHeight = Math.max(availableHeight, 200); // Altura mínima
+        
+        // 🎯 Reducir padding del header/footer en horizontal
+        const extraPadding = 20; // Espacio extra para seguridad
+        availableHeight -= extraPadding;
+    }
     
     elements.canvas.width = window.innerWidth;
-    elements.canvas.height = window.innerHeight - statsHeight - controlsHeight - footerHeight;
+    elements.canvas.height = Math.max(availableHeight, 200);
     
+    // 🚀 Reposicionar nave si existe
     if (gameState && gameState.spaceship) {
-        gameState.spaceship.x = elements.canvas.width / 4;
+        const spaceshipX = isLandscapeMobile ? elements.canvas.width / 6 : elements.canvas.width / 4;
+        gameState.spaceship.x = spaceshipX;
         gameState.spaceship.y = elements.canvas.height / 2;
         gameState.spaceship.targetX = gameState.spaceship.x;
         gameState.spaceship.targetY = gameState.spaceship.y;
     }
+    
+    console.log('📐 Canvas redimensionado:', {
+        width: elements.canvas.width,
+        height: elements.canvas.height,
+        orientation: window.orientationManager?.currentOrientation,
+        isMobile: window.orientationManager?.isMobile()
+    });
 }
 
 function resetGameState() {
+    // 🔄 Actualizar configuración para orientación actual
+    updateConfigForOrientation();
+    
     const levelValue = parseInt(elements.levelSelect.value);
     const selectedTopics = Array.from(elements.topicCheckboxes)
         .filter(cb => cb.checked)
@@ -408,6 +559,181 @@ function createCosmicObject(type) {
 }
 
 // ================================================
+// 📐 FUNCIONES DE GESTIÓN DE ORIENTACIÓN
+// ================================================
+
+function handleOrientationChange(newOrientation, oldOrientation, deviceType) {
+    console.log(`🎮 Juego adaptándose: ${oldOrientation} → ${newOrientation} (${deviceType})`);
+    
+    // 🔄 Actualizar configuración
+    updateConfigForOrientation();
+    
+    // 📐 Redimensionar canvas
+    resizeCanvas();
+    
+    // 🌟 Reinicializar elementos visuales
+    if (gameState.isGameActive || gameState.stars.length === 0) {
+        initializeStars();
+        initializeCosmicObjects();
+    }
+    
+    // 🎯 Mostrar notificación visual
+    showOrientationFeedback(newOrientation, deviceType);
+    
+    // 🎮 Pausar momentáneamente si hay una pregunta activa
+    if (gameState.currentQuestion && !gameState.isPaused) {
+        const wasActive = gameState.isGameActive;
+        gameState.isPaused = true;
+        
+        setTimeout(() => {
+            if (wasActive) {
+                gameState.isPaused = false;
+            }
+        }, 500);
+    }
+    
+    // 📱 Actualizar indicador de orientación
+    updateOrientationIndicator();
+}
+
+function showOrientationFeedback(orientation, deviceType) {
+    // 🎯 Mostrar feedback visual temporal
+    const feedback = document.createElement('div');
+    feedback.className = 'orientation-feedback';
+    feedback.innerHTML = `
+        <div style="
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 250, 255, 0.9);
+            color: #0a0a1f;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            z-index: 10000;
+            animation: orientationPulse 2s ease-out forwards;
+        ">
+            📱 ${orientation === 'landscape' ? '➡️ Horizontal' : '⬆️ Vertical'}
+        </div>
+    `;
+    
+    document.body.appendChild(feedback);
+    
+    setTimeout(() => {
+        if (feedback.parentNode) {
+            feedback.parentNode.removeChild(feedback);
+        }
+    }, 2000);
+}
+
+function updateOrientationIndicator() {
+    const indicator = document.getElementById('orientationIndicator');
+    if (indicator && window.orientationManager) {
+        const orientation = window.orientationManager.currentOrientation;
+        indicator.textContent = orientation === 'landscape' ? '📱➡️' : '📱⬆️';
+        indicator.title = `Orientación: ${orientation}`;
+    }
+}
+
+// ================================================
+// 🆕 CONTROLES DE ORIENTACIÓN PARA EL JUEGO
+// ================================================
+
+function addOrientationControls() {
+    // 🎮 Agregar botón de orientación a los controles
+    const controlsContainer = document.querySelector('.controls-container .flex');
+    
+    if (controlsContainer && window.orientationManager) {
+        const orientationButton = document.createElement('button');
+        orientationButton.id = 'orientationButton';
+        orientationButton.className = 'game-button';
+        orientationButton.innerHTML = `
+            <span class="btn-icon">📱</span>
+            <span class="btn-text">Rotar</span>
+        `;
+        
+        orientationButton.addEventListener('click', () => {
+            if (window.orientationManager.isMobile()) {
+                const currentOrientation = window.orientationManager.currentOrientation;
+                const targetOrientation = currentOrientation === 'portrait' ? 'landscape' : 'portrait';
+                
+                // 🔒 Intentar bloquear orientación
+                window.orientationManager.suggestOrientationLock(targetOrientation).then(success => {
+                    if (!success) {
+                        // 💡 Mostrar instrucción manual
+                        showOrientationInstructions(targetOrientation);
+                    }
+                });
+            } else {
+                // 🔧 En desktop, mostrar información de orientación
+                window.orientationManager.logStatus();
+            }
+        });
+        
+        // 📱 Solo mostrar en móviles
+        if (window.orientationManager.isMobile()) {
+            controlsContainer.appendChild(orientationButton);
+        }
+    }
+}
+
+function showOrientationInstructions(targetOrientation) {
+    const instructions = document.createElement('div');
+    instructions.className = 'orientation-instructions';
+    instructions.innerHTML = `
+        <div style="
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: var(--primary-color);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 10000;
+            max-width: 300px;
+            border: 1px solid var(--primary-color);
+        ">
+            <div style="font-size: 1.5rem; margin-bottom: 10px;">
+                ${targetOrientation === 'landscape' ? '📱➡️' : '📱⬆️'}
+            </div>
+            <div>
+                ${targetOrientation === 'landscape' ? 
+                    'Gira tu dispositivo horizontalmente para mejor experiencia' : 
+                    'Gira tu dispositivo verticalmente'}
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(instructions);
+    
+    setTimeout(() => {
+        if (instructions.parentNode) {
+            instructions.parentNode.removeChild(instructions);
+        }
+    }, 4000);
+}
+
+function setupOrientationIntegration() {
+    // 🎯 Registrar callback de orientación
+    if (window.orientationManager) {
+        window.orientationManager.registerOrientationCallback(handleOrientationChange);
+        
+        // 🎮 Agregar controles de orientación
+        addOrientationControls();
+        
+        console.log('📐 Integración de orientación configurada');
+    } else {
+        console.warn('⚠️ OrientationManager no disponible');
+    }
+    
+    // 📱 Configurar indicador inicial
+    updateOrientationIndicator();
+}
+
+// ================================================
 // 🎛️ EVENT LISTENERS Y CONTROLES
 // ================================================
 
@@ -424,6 +750,22 @@ function setupEventListeners() {
             soundIcon.innerHTML = enabled ? '🔊' : '🔇';
         }
     });
+    
+    // 📺 Botón de pantalla completa
+    const fullscreenButton = document.getElementById('fullscreenButton');
+    if (fullscreenButton) {
+        fullscreenButton.addEventListener('click', () => {
+            if (window.orientationManager) {
+                if (document.fullscreenElement) {
+                    window.orientationManager.exitFullscreen();
+                    fullscreenButton.querySelector('.btn-icon').innerHTML = '📺';
+                } else {
+                    window.orientationManager.requestFullscreen();
+                    fullscreenButton.querySelector('.btn-icon').innerHTML = '📱';
+                }
+            }
+        });
+    }
     
     elements.levelSelect.addEventListener('change', () => {
         if (!gameState.isGameActive) {
@@ -471,6 +813,10 @@ function setupEventListeners() {
     });
     
     elements.footerShip.addEventListener('transitionend', resetFooterShip);
+    
+    // 🔄 Configurar integración de orientación
+    setupOrientationIntegration();
+    
     console.log('🎛️ Event listeners configurados');
 }
 
@@ -1368,9 +1714,82 @@ document.addEventListener('DOMContentLoaded', () => {
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
             window.debugGame = () => console.log('🐛 Estado:', gameState);
             window.triggerExplosion = triggerFooterExplosion; // Para testing
-            console.log('🐛 Modo debug activado - triggerExplosion() disponible');
+            window.updateConfigForOrientation = updateConfigForOrientation; // Para testing
+            
+            // 📐 Funciones de debug de orientación
+            window.debugOrientation = () => {
+                if (window.orientationManager) {
+                    console.table(window.orientationManager.getScreenInfo());
+                }
+            };
+            
+            window.testOrientationChange = () => {
+                if (window.orientationManager) {
+                    const current = window.orientationManager.currentOrientation;
+                    const opposite = current === 'portrait' ? 'landscape' : 'portrait';
+                    handleOrientationChange(opposite, current, window.orientationManager.deviceType);
+                }
+            };
+            
+            window.toggleOrientationLock = () => {
+                if (window.orientationManager) {
+                    const target = window.orientationManager.isLandscape() ? 'portrait' : 'landscape';
+                    window.orientationManager.suggestOrientationLock(target);
+                }
+            };
+            
+            console.log('🐛 Modo debug activado - Funciones disponibles:');
+            console.log('- debugGame()');
+            console.log('- triggerExplosion()');
+            console.log('- debugOrientation()');
+            console.log('- testOrientationChange()');
+            console.log('- toggleOrientationLock()');
+            console.log('- updateConfigForOrientation()');
         }
     }, 100);
 });
 
-console.log('📜 game.js mejorado cargado completamente');
+// ================================================
+// 📐 CSS PARA ANIMACIONES DE ORIENTACIÓN
+// ================================================
+
+// Agregar estas animaciones CSS al documento
+const orientationStyles = document.createElement('style');
+orientationStyles.textContent = `
+    @keyframes orientationPulse {
+        0% { 
+            opacity: 0; 
+            transform: translate(-50%, -50%) scale(0.8); 
+        }
+        20% { 
+            opacity: 1; 
+            transform: translate(-50%, -50%) scale(1.1); 
+        }
+        80% { 
+            opacity: 1; 
+            transform: translate(-50%, -50%) scale(1); 
+        }
+        100% { 
+            opacity: 0; 
+            transform: translate(-50%, -50%) scale(0.9); 
+        }
+    }
+    
+    .orientation-feedback * {
+        pointer-events: none;
+    }
+`;
+
+document.head.appendChild(orientationStyles);
+
+// ================================================
+// 🌟 EXPOSICIÓN DE FUNCIONES GLOBALES
+// ================================================
+
+// Exponer funciones principales para integración
+window.setupOrientationIntegration = setupOrientationIntegration;
+window.updateConfigForOrientation = updateConfigForOrientation;
+window.handleOrientationChange = handleOrientationChange;
+window.resizeCanvas = resizeCanvas;
+
+console.log('📜 game.js mejorado con orientación cargado completamente');

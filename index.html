@@ -2,8 +2,16 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Academia Espacial: Física Interactiva v13</title>
+    <!-- 📱 Meta viewport mejorado - será actualizado dinámicamente por OrientationManager -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    
+    <!-- 🎨 Configuración para PWA y mejor experiencia móvil -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0a0a1f">
+    
+    <title>Academia Espacial: Física Interactiva v14 📐</title>
     
     <!-- 🎨 LIBRERÍAS EXTERNAS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -12,6 +20,12 @@
     
     <!-- 📁 ARCHIVOS LOCALES -->
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="orientation-styles.css">
+    
+    <!-- 🎯 Preload de archivos críticos -->
+    <link rel="preload" href="orientation-manager.js" as="script">
+    <link rel="preload" href="questions.js" as="script">
+    <link rel="preload" href="game.js" as="script">
 </head>
 
 <body>
@@ -30,6 +44,11 @@
             </div>
             <div class="stat"><span>Nota:</span><span id="grade" class="font-bold">0.0</span><span class="text-yellow-400">⭐</span></div>
             <div class="stat"><span>Tema:</span><span id="currentTopic" class="font-bold">Magnitudes</span></div>
+            
+            <!-- 📱 Indicador de orientación (solo móvil) -->
+            <div class="stat mobile-only">
+                <span id="orientationIndicator" class="text-xs opacity-75">📱</span>
+            </div>
         </div>
 
         <!-- 🎮 CANVAS DEL JUEGO -->
@@ -91,6 +110,12 @@
                     <span class="btn-text">Sonido</span>
                 </button>
                 
+                <!-- 📱 Botón de pantalla completa (móviles) -->
+                <button id="fullscreenButton" class="game-button mobile-only">
+                    <span class="btn-icon">📺</span>
+                    <span class="btn-text">Pantalla</span>
+                </button>
+                
                 <button id="helpButton" class="game-button">
                     <span class="btn-icon">❓</span>
                     <span class="btn-text">Ayuda</span>
@@ -100,12 +125,20 @@
                     <span class="btn-icon">🔄</span>
                     <span class="btn-text">Reiniciar</span>
                 </button>
+                
+                <!-- 📐 El botón de orientación se agregará dinámicamente -->
             </div>
+            
+            <!-- 📱 Información de orientación para debug (solo desarrollo) -->
+            <div id="orientationDebug" class="debug-orientation" style="display: none;"></div>
         </div>
         
         <!-- 👨‍🚀 PIE DE PÁGINA -->
         <footer class="galactic-footer">
-            <div id="footer-author" class="footer-author">Autor: Msc Néstor Fabio Montoya Palacios</div>
+            <div id="footer-author" class="footer-author">
+                <span class="desktop-only">Autor: Msc Néstor Fabio Montoya Palacios</span>
+                <span class="mobile-only">📐 Academia Espacial v14</span>
+            </div>
             <div id="footer-ship">🛸</div>
         </footer>
     </div>
@@ -147,6 +180,15 @@
                     <li><strong>Colisiones:</strong> Toca meteoritos para aprender</li>
                     <li><strong>Temas:</strong> Elige uno o varios temas</li>
                     <li><strong>Sonido:</strong> Activa/desactiva con 🔊</li>
+                    <li class="mobile-only"><strong>📱 Orientación:</strong> Gira el dispositivo para mejor experiencia</li>
+                    <li class="mobile-only"><strong>📺 Pantalla completa:</strong> Para juego inmersivo</li>
+                </ul>
+                
+                <h3 class="text-cyan-400 font-bold text-lg mb-2 mobile-only">📱 Consejos Móvil</h3>
+                <ul class="list-disc list-inside space-y-1 ml-4 mobile-only">
+                    <li>Usa orientación horizontal para mejor visibilidad</li>
+                    <li>Activa pantalla completa para máxima inmersión</li>
+                    <li>El juego se adapta automáticamente a tu pantalla</li>
                 </ul>
             </div>
             <button id="closeHelp" class="game-button mt-6">🚀 ¡Entendido!</button>
@@ -171,6 +213,11 @@
             <div class="space-y-4">
                 <button id="resumeButton" class="game-button btn-success">▶️ Reanudar</button>
                 <button id="restartFromPause" class="game-button">🔄 Reiniciar</button>
+                <!-- 📱 Opciones adicionales para móviles -->
+                <div class="mobile-only space-y-2">
+                    <button id="fullscreenFromPause" class="game-button">📺 Pantalla Completa</button>
+                    <button id="orientationFromPause" class="game-button">📱 Rotar Pantalla</button>
+                </div>
             </div>
         </div>
     </div>
@@ -184,9 +231,32 @@
         </div>
     </div>
 
+    <!-- 📐 Modal de Orientación (Nuevo) -->
+    <div id="orientationModal" class="modal">
+        <div class="modal-content">
+            <h2>📱 Configuración de Orientación</h2>
+            <div class="text-left space-y-4 text-sm">
+                <p>Tu dispositivo: <span id="deviceTypeInfo" class="font-bold text-cyan-400"></span></p>
+                <p>Orientación actual: <span id="currentOrientationInfo" class="font-bold text-cyan-400"></span></p>
+                
+                <div class="bg-gray-800 p-4 rounded">
+                    <h4 class="text-cyan-400 font-bold mb-2">💡 Recomendación:</h4>
+                    <p id="orientationRecommendation">Para la mejor experiencia, te recomendamos usar orientación horizontal.</p>
+                </div>
+                
+                <div class="space-y-2">
+                    <button id="lockLandscape" class="game-button w-full">📱➡️ Bloquear Horizontal</button>
+                    <button id="lockPortrait" class="game-button w-full">📱⬆️ Bloquear Vertical</button>
+                    <button id="unlockOrientation" class="game-button w-full">🔓 Desbloquear</button>
+                </div>
+            </div>
+            <button id="closeOrientationModal" class="game-button mt-6">✅ Entendido</button>
+        </div>
+    </div>
+
     <!-- 📜 SCRIPTS EN ORDEN CORRECTO -->
     <script>
-        // Configuración de MathJax INLINE para evitar problemas
+        // 🎯 Configuración de MathJax INLINE mejorada
         window.MathJax = {
             tex: {
                 inlineMath: [['$', '$'], ['\\(', '\\)']],
@@ -207,9 +277,102 @@
                 }
             }
         };
+        
+        // 📱 Configuración adicional para móviles
+        document.addEventListener('DOMContentLoaded', function() {
+            // 🎯 Prevenir zoom accidental en iOS
+            document.addEventListener('gesturestart', function(e) {
+                e.preventDefault();
+            });
+            
+            // 📱 Mejorar el scroll en móviles
+            document.addEventListener('touchstart', function() {}, {passive: true});
+            document.addEventListener('touchmove', function() {}, {passive: true});
+            
+            // 🔧 Configurar indicador de orientación
+            function updateOrientationIndicator() {
+                const indicator = document.getElementById('orientationIndicator');
+                if (indicator && window.orientationManager) {
+                    const orientation = window.orientationManager.currentOrientation;
+                    indicator.textContent = orientation === 'landscape' ? '📱➡️' : '📱⬆️';
+                    indicator.title = `Orientación: ${orientation}`;
+                }
+            }
+            
+            // 🎮 Configurar botón de pantalla completa
+            const fullscreenButton = document.getElementById('fullscreenButton');
+            if (fullscreenButton) {
+                fullscreenButton.addEventListener('click', function() {
+                    if (window.orientationManager) {
+                        if (document.fullscreenElement) {
+                            window.orientationManager.exitFullscreen();
+                        } else {
+                            window.orientationManager.requestFullscreen();
+                        }
+                    }
+                });
+            }
+            
+            // 🔄 Actualizar indicador cuando cambie la orientación
+            if (window.orientationManager) {
+                window.orientationManager.registerOrientationCallback(updateOrientationIndicator);
+            }
+            
+            // 🧪 Mostrar debug en desarrollo
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                const debugElement = document.getElementById('orientationDebug');
+                if (debugElement) {
+                    debugElement.style.display = 'block';
+                    
+                    function updateDebugInfo() {
+                        if (window.orientationManager) {
+                            const info = window.orientationManager.getScreenInfo();
+                            debugElement.innerHTML = `
+                                ${info.deviceType} | ${info.orientation}<br>
+                                ${info.dimensions.width}x${info.dimensions.height}<br>
+                                Ratio: ${info.dimensions.ratio}
+                            `;
+                        }
+                    }
+                    
+                    setInterval(updateDebugInfo, 1000);
+                }
+            }
+        });
     </script>
+    
+    <!-- 📐 Sistema de orientación (PRIMERO) -->
+    <script src="orientation-manager.js"></script>
+    
+    <!-- 📚 Base de datos del juego -->
     <script src="questions.js"></script>
     <script src="curiosities.js"></script>
+    
+    <!-- 🎮 Motor principal (con integración de orientación) -->
     <script src="game.js"></script>
+    
+    <!-- 📐 Script de integración final -->
+    <script>
+        // 🎯 Integración final cuando todo esté cargado
+        window.addEventListener('load', function() {
+            // ⏱️ Pequeño delay para asegurar que todo esté inicializado
+            setTimeout(function() {
+                // 🔗 Conectar OrientationManager con el juego
+                if (window.orientationManager && window.setupOrientationIntegration) {
+                    window.setupOrientationIntegration();
+                }
+                
+                // 📱 Configuración inicial
+                if (window.orientationManager) {
+                    console.log('📐 Sistema de orientación totalmente integrado');
+                    
+                    // 🎯 Aplicar configuración inicial
+                    if (window.updateConfigForOrientation) {
+                        window.updateConfigForOrientation();
+                    }
+                }
+            }, 500);
+        });
+    </script>
 </body>
 </html>
