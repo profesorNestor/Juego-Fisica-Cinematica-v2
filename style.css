@@ -1,6 +1,6 @@
 /* ================================================
    🎨 ACADEMIA ESPACIAL - HOJA DE ESTILOS FUTURISTA
-   Archivo: style.css
+   Archivo: style.css - VERSIÓN MEJORADA CON MODALES VERTICALES
    ================================================ */
 
 /* 🌌 VARIABLES GLOBALES - PALETA DE COLORES ESPACIALES */
@@ -208,6 +208,10 @@ canvas {
     background: linear-gradient(120deg, var(--error-color), var(--secondary-color)); 
 }
 
+/* ================================================
+   🪟 SISTEMA DE MODALES MEJORADO - SIEMPRE VERTICALES
+   ================================================ */
+
 /* 🪟 VENTANAS MODALES CON BACKDROP BLUR */
 .modal { 
     display: none; 
@@ -223,21 +227,26 @@ canvas {
     -webkit-backdrop-filter: blur(8px); 
 }
 
-/* 📦 CONTENIDO DE MODALES */
+/* 📦 CONTENIDO DE MODALES - DISEÑO VERTICAL FORZADO */
 .modal-content { 
     background: var(--glass-bg); 
     border: 1px solid var(--primary-color); 
-    padding: 20px; 
+    padding: 25px; 
     border-radius: 16px; 
     text-align: center; 
-    width: 90%; 
-    max-width: 500px; 
+    width: 95%; 
+    max-width: 600px !important; /* 🔧 Ancho máximo fijo */
     color: var(--text-light); 
     box-shadow: 0 0 50px -10px rgba(0, 250, 255, 0.4); 
-    max-height: 90vh; 
+    max-height: 90vh !important; /* 🔧 Altura máxima controlada */
     overflow-y: auto; 
     position: relative; 
     animation: modalAppear 0.4s cubic-bezier(0.25, 1, 0.5, 1); 
+    
+    /* 🔧 FORZAR DISEÑO VERTICAL */
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 15px !important;
 }
 
 /* 🎭 ANIMACIÓN DE APARICIÓN DE MODALES */
@@ -256,59 +265,334 @@ canvas {
 .modal-content h2 { 
     font-family: 'Orbitron', sans-serif; 
     color: var(--primary-color); 
-    margin-bottom: 15px; 
+    margin-bottom: 20px !important; 
     font-size: 1.5rem; 
     text-shadow: 0 0 10px var(--primary-color); 
+    text-align: center !important;
 }
 
-/* 🎯 BOTONES DE OPCIONES EN PREGUNTAS */
-.option-button { 
-    background: rgba(0,0,0, 0.2); 
-    border: 1px solid var(--glass-border); 
-    color: var(--text-light); 
-    width: 100%; 
-    padding: 12px; 
-    margin: 6px 0; 
-    font-size: 0.9rem; 
-    cursor: pointer; 
-    border-radius: 10px; 
-    transition: all 0.3s ease; 
-    position: relative; 
+/* ================================================
+   📝 MODAL DE PREGUNTAS - DISEÑO VERTICAL OPTIMIZADO
+   ================================================ */
+
+/* 📊 METADATOS DE LA PREGUNTA */
+.question-metadata {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(0, 250, 255, 0.2) !important;
+    padding: 12px !important;
+    border-radius: 8px !important;
+    margin-bottom: 15px !important;
 }
 
-.option-button:hover { 
-    background-color: rgba(0, 250, 255, 0.15); 
-    border-color: var(--primary-color); 
-    transform: scale(1.02); 
+.metadata-item {
+    display: flex !important;
+    align-items: center !important;
+    gap: 5px !important;
 }
 
-.option-button.selected { 
-    background: var(--primary-color); 
-    color: var(--background-dark); 
-    border-color: var(--primary-color); 
-    box-shadow: 0 0 15px var(--primary-color); 
-    font-weight: 600; 
-    transform: scale(1.02); 
+.metadata-label {
+    font-weight: bold !important;
+    color: var(--accent-color) !important;
 }
 
-/* 🧮 CONTENEDOR DE SOLUCIONES */
+.metadata-value {
+    color: var(--text-light) !important;
+}
+
+/* 📝 TEXTO PRINCIPAL DE LA PREGUNTA */
+.question-main-text {
+    font-size: 1.1rem !important;
+    line-height: 1.6 !important;
+    text-align: left !important;
+    margin-bottom: 20px !important;
+    padding: 15px !important;
+    background: rgba(0, 0, 0, 0.2) !important;
+    border-radius: 8px !important;
+    border-left: 4px solid var(--primary-color) !important;
+}
+
+/* 🧮 CONTENEDOR DE FÓRMULAS */
+.math-formula-container {
+    margin: 20px 0 !important;
+    padding: 15px !important;
+    background: rgba(0, 250, 255, 0.1) !important;
+    border: 1px solid rgba(0, 250, 255, 0.3) !important;
+    border-radius: 10px !important;
+    text-align: center !important;
+}
+
+.formula-label {
+    font-weight: bold !important;
+    color: var(--accent-color) !important;
+    margin-bottom: 10px !important;
+    font-size: 0.9rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+}
+
+/* 🧮 EXPRESIONES MATEMÁTICAS */
+.math-expression {
+    background: rgba(0, 0, 0, 0.3) !important;
+    padding: 12px !important;
+    border-radius: 6px !important;
+    font-size: 1.2rem !important;
+    color: var(--text-light) !important;
+    border: 1px solid rgba(0, 250, 255, 0.2) !important;
+}
+
+/* 📊 SECCIÓN DE DATOS DEL PROBLEMA */
+.data-section {
+    margin: 20px 0 !important;
+    padding: 15px !important;
+    background: rgba(0, 0, 0, 0.3) !important;
+    border-radius: 8px !important;
+    border-left: 4px solid var(--secondary-color) !important;
+    text-align: left !important;
+}
+
+.data-label {
+    font-weight: bold !important;
+    color: var(--secondary-color) !important;
+    margin-bottom: 12px !important;
+    font-size: 1rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+}
+
+.data-container {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+}
+
+.data-item {
+    padding: 8px 12px !important;
+    background: rgba(0, 0, 0, 0.4) !important;
+    border-radius: 6px !important;
+    border-left: 3px solid var(--accent-color) !important;
+}
+
+.data-equation {
+    font-size: 1rem !important;
+    color: var(--text-light) !important;
+    font-family: 'Courier New', monospace !important;
+}
+
+/* 🎯 OPCIONES - DISEÑO VERTICAL OPTIMIZADO */
+#optionsContainer {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    margin: 20px 0 !important;
+    width: 100% !important;
+}
+
+/* 🎯 BOTONES DE OPCIONES MEJORADOS */
+.option-button {
+    min-height: 55px !important;
+    padding: 15px 18px !important;
+    text-align: left !important;
+    font-size: 1rem !important;
+    line-height: 1.4 !important;
+    border-radius: 12px !important;
+    transition: all 0.3s ease !important;
+    background: rgba(0, 0, 0, 0.2) !important;
+    border: 2px solid var(--glass-border) !important;
+    color: var(--text-light) !important;
+    cursor: pointer !important;
+    
+    /* 🔧 Asegurar que el texto se vea bien */
+    word-wrap: break-word !important;
+    white-space: normal !important;
+    width: 100% !important;
+    
+    /* 🎨 Efectos visuales */
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.option-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 250, 255, 0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+.option-button:hover {
+    background: rgba(0, 250, 255, 0.15) !important;
+    border-color: var(--primary-color) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 5px 15px rgba(0, 250, 255, 0.3) !important;
+}
+
+.option-button:hover::before {
+    left: 100%;
+}
+
+.option-button.selected {
+    background: linear-gradient(135deg, var(--primary-color), rgba(0, 250, 255, 0.8)) !important;
+    color: var(--background-dark) !important;
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 20px var(--primary-color) !important;
+    font-weight: 600 !important;
+    transform: translateY(-2px) scale(1.02) !important;
+}
+
+.option-button.selected::before {
+    display: none;
+}
+
+/* ✅ BOTÓN DE CONFIRMAR RESPUESTA */
+#answerButton {
+    margin-top: 25px !important;
+    padding: 15px 35px !important;
+    font-size: 1.1rem !important;
+    align-self: center !important;
+    min-width: 200px !important;
+}
+
+/* ================================================
+   💬 MODAL DE FEEDBACK Y CURIOSIDADES
+   ================================================ */
+
+/* 📝 TÍTULO DEL FEEDBACK */
+#feedbackTitle {
+    color: var(--primary-color) !important;
+    font-size: 1.8rem !important;
+    margin-bottom: 15px !important;
+    text-shadow: 0 0 15px var(--primary-color) !important;
+}
+
+/* 📝 TEXTO DEL FEEDBACK */
+#feedbackText {
+    font-size: 1.2rem !important;
+    line-height: 1.5 !important;
+    margin-bottom: 20px !important;
+    color: var(--text-light) !important;
+}
+
+/* 💡 CONTENEDOR DE EXPLICACIONES */
+.explanation-container {
+    text-align: left !important;
+    margin-top: 20px !important;
+    padding: 20px !important;
+    background: rgba(0, 0, 0, 0.3) !important;
+    border-radius: 10px !important;
+    border-left: 4px solid var(--accent-color) !important;
+}
+
+.explanation-title {
+    color: var(--accent-color) !important;
+    margin-bottom: 15px !important;
+    font-family: 'Orbitron', sans-serif !important;
+    text-shadow: 0 0 8px var(--accent-color) !important;
+    font-size: 1.1rem !important;
+}
+
+.explanation-content {
+    font-size: 1rem !important;
+    line-height: 1.7 !important;
+    color: var(--text-light) !important;
+}
+
+/* 🧠 CONTENEDOR DE CURIOSIDADES */
+.curiosity-container {
+    text-align: left !important;
+    margin-top: 15px !important;
+    padding: 20px !important;
+    background: rgba(0, 0, 0, 0.4) !important;
+    border-radius: 10px !important;
+    border: 2px solid rgba(255, 0, 255, 0.3) !important;
+}
+
+.curiosity-content {
+    font-size: 1rem !important;
+    line-height: 1.7 !important;
+    color: var(--text-light) !important;
+}
+
+/* 🧮 CONTENEDOR DE SOLUCIONES (LEGACY) */
 #solution-container { 
-    margin-top: 20px; 
-    padding: 15px; 
-    border-top: 1px solid var(--glass-border); 
-    text-align: left; 
-    font-family: 'Inter', sans-serif; 
-    background: rgba(0, 0, 0, 0.3); 
-    border-radius: 8px; 
-    font-size: 1em; 
-    line-height: 1.7; 
+    margin-top: 20px !important; 
+    padding: 15px !important; 
+    border-top: 1px solid var(--glass-border) !important; 
+    text-align: left !important; 
+    font-family: 'Inter', sans-serif !important; 
+    background: rgba(0, 0, 0, 0.3) !important; 
+    border-radius: 8px !important; 
+    font-size: 1em !important; 
+    line-height: 1.7 !important; 
 }
 
 #solution-container h4 { 
-    color: var(--accent-color); 
-    margin-bottom: 10px; 
-    font-family: 'Orbitron', sans-serif; 
-    text-shadow: 0 0 5px var(--accent-color); 
+    color: var(--accent-color) !important; 
+    margin-bottom: 10px !important; 
+    font-family: 'Orbitron', sans-serif !important; 
+    text-shadow: 0 0 5px var(--accent-color) !important; 
+}
+
+/* ================================================
+   📱 ADAPTACIONES ESPECÍFICAS PARA MÓVILES
+   ================================================ */
+
+@media (max-width: 768px) {
+    /* 📱 Modal más compacto en móviles */
+    .modal-content {
+        max-width: 95% !important;
+        padding: 20px !important;
+        margin: 10px !important;
+        max-height: 85vh !important;
+    }
+    
+    /* 📝 Texto más pequeño en móviles */
+    .question-main-text {
+        font-size: 1rem !important;
+        padding: 12px !important;
+    }
+    
+    /* 🎯 Opciones más compactas */
+    .option-button {
+        min-height: 50px !important;
+        padding: 12px 15px !important;
+        font-size: 0.95rem !important;
+    }
+    
+    /* 📊 Metadatos más compactos */
+    .question-metadata {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 8px !important;
+        padding: 10px !important;
+    }
+    
+    /* 📝 Títulos más pequeños */
+    .modal-content h2 {
+        font-size: 1.3rem !important;
+    }
+    
+    /* 💡 Explicaciones más compactas */
+    .explanation-container,
+    .curiosity-container {
+        padding: 15px !important;
+    }
+    
+    /* 🧮 Datos más compactos */
+    .data-section {
+        padding: 12px !important;
+    }
+    
+    .data-item {
+        padding: 6px 10px !important;
+    }
 }
 
 /* 📊 BARRA DE PROGRESO ANIMADA */
@@ -415,7 +699,48 @@ canvas {
 .btn-text { display: none; } 
 .btn-icon { display: inline; font-size: 1.2rem; }
 
-/* 💻 MEDIA QUERY PARA PANTALLAS GRANDES */
+/* ================================================
+   🔧 CORRECCIONES PARA MATHJAX EN MODALES
+   ================================================ */
+
+/* 🧮 Mejoras de renderizado de MathJax */
+.modal-content .MathJax {
+    font-size: 1.1em !important;
+    color: var(--text-light) !important;
+}
+
+.modal-content .MathJax_Display {
+    margin: 1em 0 !important;
+    text-align: center !important;
+}
+
+.modal-content .MathJax_CHTML {
+    outline: 0 !important;
+}
+
+/* 🔧 Estilos específicos para ecuaciones en opciones */
+.option-button .MathJax {
+    font-size: 1em !important;
+    vertical-align: middle !important;
+}
+
+/* 🔧 Estilos para ecuaciones en datos */
+.data-equation .MathJax {
+    font-size: 1em !important;
+    color: var(--text-light) !important;
+}
+
+/* 🔧 Estilos para ecuaciones en explicaciones */
+.explanation-content .MathJax,
+.curiosity-content .MathJax {
+    font-size: 1em !important;
+    margin: 0.5em 0 !important;
+}
+
+/* ================================================
+   💻 MEDIA QUERY PARA PANTALLAS GRANDES
+   ================================================ */
+
 @media (min-width: 768px) {
     /* 📊 Paneles más espaciosos */
     .stats-bar, .controls-container { 
@@ -444,19 +769,20 @@ canvas {
     
     /* 🪟 Modales más espaciosas */
     .modal-content { 
-        max-width: 600px; 
-        padding: 30px; 
+        max-width: 650px !important; 
+        padding: 30px !important; 
     }
     
     /* 📝 Títulos de modales más grandes */
     .modal-content h2 { 
-        font-size: 1.8rem; 
+        font-size: 1.8rem !important; 
     }
     
     /* 🎯 Botones de opciones más cómodos */
     .option-button { 
-        padding: 15px; 
-        font-size: 1rem; 
+        padding: 18px 20px !important; 
+        font-size: 1.05rem !important; 
+        min-height: 60px !important;
     }
     
     /* 👨‍🚀 Footer más prominente */
@@ -472,6 +798,23 @@ canvas {
     .btn-icon { 
         margin-right: 8px; 
         font-size: 1rem; 
+    }
+    
+    /* 📝 Texto de preguntas más grande */
+    .question-main-text {
+        font-size: 1.2rem !important;
+        padding: 18px !important;
+    }
+    
+    /* 📊 Metadatos más espaciosos */
+    .question-metadata {
+        padding: 15px !important;
+    }
+    
+    /* 🧮 Fórmulas más prominentes */
+    .math-expression {
+        font-size: 1.3rem !important;
+        padding: 15px !important;
     }
 }
 
@@ -574,22 +917,26 @@ canvas {
 .border-accent { border-color: var(--accent-color) !important; }
 
 /* 🎯 Scrollbar personalizado para elementos con scroll */
-.custom-scrollbar::-webkit-scrollbar {
+.custom-scrollbar::-webkit-scrollbar,
+.modal-content::-webkit-scrollbar {
     width: 8px;
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
+.custom-scrollbar::-webkit-scrollbar-track,
+.modal-content::-webkit-scrollbar-track {
     background: rgba(0, 0, 0, 0.3);
     border-radius: 4px;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
+.custom-scrollbar::-webkit-scrollbar-thumb,
+.modal-content::-webkit-scrollbar-thumb {
     background: var(--primary-color);
     border-radius: 4px;
     box-shadow: 0 0 5px var(--primary-color);
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+.custom-scrollbar::-webkit-scrollbar-thumb:hover,
+.modal-content::-webkit-scrollbar-thumb:hover {
     background: var(--secondary-color);
 }
 

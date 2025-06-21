@@ -1,6 +1,6 @@
 // ================================================
 // 🎮 MOTOR PRINCIPAL DEL JUEGO DE FÍSICA ESPACIAL
-// Archivo: game.js - VERSIÓN MEJORADA CON ORIENTACIÓN
+// Archivo: game.js - VERSIÓN MEJORADA CON MODALES VERTICALES Y MATHJAX FUNCIONAL
 // ================================================
 
 console.log('🎮 Cargando motor del juego...');
@@ -256,7 +256,7 @@ function updateConfigForOrientation() {
 }
 
 // ================================================
-// 🌟 SISTEMA DE RENDERIZADO MATEMÁTICO
+// 🌟 SISTEMA DE RENDERIZADO MATEMÁTICO MEJORADO
 // ================================================
 
 window.mathRenderSystem = {
@@ -300,23 +300,103 @@ window.mathRenderSystem = {
     },
     
     async renderMath(container) {
-        if (!window.MathJax || !this.isInitialized) {
-            console.warn('⚠️ MathJax no está listo');
+        if (!window.MathJax) {
+            console.warn('⚠️ MathJax no está disponible aún');
             return;
         }
         
         try {
+            // 🔧 Esperar a que MathJax esté completamente listo
             await MathJax.startup.promise;
+            
             if (container) {
+                // 🔧 Limpiar renderizado previo
                 MathJax.typesetClear([container]);
             }
+            
+            // 🔧 Renderizar nuevo contenido
             const elements = container ? [container] : undefined;
             await MathJax.typesetPromise(elements);
-            console.log('✅ Matemáticas renderizadas');
+            
+            console.log('✅ Matemáticas renderizadas correctamente');
         } catch (error) {
-            console.error('❌ Error renderizando:', error);
+            console.error('❌ Error renderizando MathJax:', error);
             throw error;
         }
+    }
+};
+
+// ================================================
+// 🚨 SISTEMA DE GESTIÓN DE MODALES MEJORADO
+// ================================================
+
+const ModalManager = {
+    activeModals: new Set(),
+    modalStack: [],
+    
+    // 🚨 Registrar modal activo
+    openModal(modalId, type = 'normal') {
+        const modal = document.getElementById(modalId);
+        if (!modal) return false;
+        
+        // 🔧 Manejar conflictos específicos
+        if (type === 'question') {
+            // Cerrar cualquier modal de curiosidad que esté abierto
+            this.closeModalsByType('curiosity');
+        } else if (type === 'curiosity') {
+            // Solo mostrar curiosidad si NO hay una pregunta activa
+            if (this.hasModalOfType('question')) {
+                console.warn('⚠️ No se puede mostrar curiosidad mientras hay una pregunta activa');
+                return false;
+            }
+        }
+        
+        this.activeModals.add(modalId);
+        this.modalStack.push({ id: modalId, type });
+        
+        modal.style.display = 'flex';
+        console.log(`📋 Modal abierto: ${modalId} (tipo: ${type})`);
+        return true;
+    },
+    
+    // 🚨 Cerrar modal específico
+    closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+        
+        this.activeModals.delete(modalId);
+        this.modalStack = this.modalStack.filter(m => m.id !== modalId);
+        
+        modal.style.display = 'none';
+        console.log(`📋 Modal cerrado: ${modalId}`);
+    },
+    
+    // 🚨 Cerrar todos los modales
+    closeAllModals() {
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.style.display = 'none';
+        });
+        this.activeModals.clear();
+        this.modalStack = [];
+        console.log('📋 Todos los modales cerrados');
+    },
+    
+    // 🚨 Cerrar modales por tipo
+    closeModalsByType(type) {
+        const modalsToClose = this.modalStack.filter(m => m.type === type);
+        modalsToClose.forEach(modal => {
+            this.closeModal(modal.id);
+        });
+    },
+    
+    // 🚨 Verificar si hay modal de cierto tipo
+    hasModalOfType(type) {
+        return this.modalStack.some(m => m.type === type);
+    },
+    
+    // 🚨 Obtener modal activo del tope
+    getTopModal() {
+        return this.modalStack.length > 0 ? this.modalStack[this.modalStack.length - 1] : null;
     }
 };
 
@@ -447,8 +527,15 @@ function resetGameState() {
             angle: 0
         },
         cosmicObjects: { meteorites: [], planets: [], comets: [] },
-        animationId: gameState.animationId || null
+        animationId: gameState.animationId || null,
+        // 🚨 NUEVO: Estado para controlar modales
+        activeModal: null,
+        questionActive: false,
+        curiosityBlocked: false
     };
+    
+    // 🚨 Limpiar modales al resetear
+    ModalManager.closeAllModals();
     
     elements.startButtonText.textContent = 'Lanzar';
     console.log('🔄 Estado del juego reiniciado');
@@ -786,7 +873,7 @@ function setupEventListeners() {
     elements.answerButton.addEventListener('click', submitAnswer);
     elements.nextButton.addEventListener('click', continueAfterFeedback);
     
-    document.getElementById('closeHelp').addEventListener('click', closeModal);
+    document.getElementById('closeHelp').addEventListener('click', () => ModalManager.closeModal('helpModal'));
     document.getElementById('nextLevelButton').addEventListener('click', advanceLevel);
     document.getElementById('resumeButton').addEventListener('click', resumeGame);
     document.getElementById('restartFromPause').addEventListener('click', resetGame);
@@ -836,7 +923,7 @@ function handleLaunchClick() {
         // 🎯 MEJORA: Iniciar juego Y mostrar primera pregunta inmediatamente
         startGame();
     } else {
-        if (!gameState.currentQuestion) {
+        if (!gameState.currentQuestion && !gameState.questionActive) {
             showNextQuestion();
         }
     }
@@ -914,51 +1001,95 @@ function showNextQuestion() {
     displayQuestion();
 }
 
+// ================================================
+// 📝 FUNCIÓN displayQuestion() MEJORADA CON MATHJAX FUNCIONAL
+// ================================================
+
 async function displayQuestion() {
     const q = gameState.currentQuestion;
     if (!q) return;
     
-    console.log('📝 Mostrando pregunta');
+    console.log('📝 Mostrando pregunta:', q.question.substring(0, 50) + '...');
     
+    // 🚨 MARCAR QUE HAY UNA PREGUNTA ACTIVA
+    gameState.questionActive = true;
+    gameState.curiosityBlocked = true;
+    
+    // 🚨 Usar ModalManager para abrir modal de pregunta
+    if (!ModalManager.openModal('questionModal', 'question')) {
+        console.error('❌ No se pudo abrir modal de pregunta');
+        return;
+    }
+    
+    // 📊 Información de la pregunta
     elements.questionData.innerHTML = `
-        <div class="flex justify-between items-center flex-wrap gap-2">
-            <span><strong>Tema:</strong> ${getTopicDisplayName(q.topic)}</span>
-            <span><strong>Dificultad:</strong> ${'⭐'.repeat(q.difficulty || 1)}</span>
+        <div class="question-metadata">
+            <div class="metadata-item">
+                <span class="metadata-label">Tema:</span>
+                <span class="metadata-value">${getTopicDisplayName(q.topic)}</span>
+            </div>
+            <div class="metadata-item">
+                <span class="metadata-label">Dificultad:</span>
+                <span class="metadata-value">${'⭐'.repeat(q.difficulty || 1)}</span>
+            </div>
         </div>
     `;
     
-    elements.questionText.innerHTML = q.question;
+    // 📝 Texto de la pregunta
+    elements.questionText.innerHTML = `<div class="question-main-text">${q.question}</div>`;
     
+    // 🧮 Fórmula (si existe)
     if (q.formula) {
         elements.questionText.innerHTML += `
-            <div class="math-expression mt-4 text-center text-cyan-300">${q.formula}</div>
+            <div class="math-formula-container">
+                <div class="formula-label">Fórmula:</div>
+                <div class="math-expression">${q.formula}</div>
+            </div>
         `;
     }
     
+    // 📊 Datos del problema (si existen)
     if (q.given) {
-        let givenHTML = '<div class="math-expression mt-4"><strong>Datos:</strong> ';
-        let latexString = '';
+        const isMobile = window.orientationManager ? 
+            window.orientationManager.isMobile() : 
+            window.innerWidth < 768;
         
-        for (const [key, value] of Object.entries(q.given)) {
+        const dataEntries = Object.entries(q.given);
+        
+        // 🔧 SIEMPRE FORMATO VERTICAL PARA MEJOR LEGIBILIDAD
+        let givenHTML = '<div class="data-section">';
+        givenHTML += '<div class="data-label">Datos:</div>';
+        givenHTML += '<div class="data-container">';
+        
+        dataEntries.forEach(([key, value], index) => {
             const formattedKey = key.replace(/_(\w+)/, '_{$1}');
-            latexString += `${formattedKey} = ${value} \\\\ `;
-        }
+            givenHTML += `
+                <div class="data-item">
+                    <span class="data-equation">${formattedKey} = ${value}$</span>
+                </div>
+            `;
+        });
         
-        givenHTML += `$$${latexString}$$`;
-        givenHTML += '</div>';
+        givenHTML += '</div></div>';
         elements.questionText.innerHTML += givenHTML;
     }
     
-    displayOptions();
-    elements.questionModal.style.display = 'flex';
+    // 🎯 Renderizar opciones
+    await displayOptions();
     
-    try {
-        await window.mathRenderSystem.queueRender(elements.questionModal, 100);
-    } catch (error) {
-        console.error('❌ Error renderizando pregunta:', error);
-    }
+    // 🔧 RENDERIZAR MATHJAX CON DELAY PARA ASEGURAR VISIBILIDAD
+    setTimeout(async () => {
+        try {
+            console.log('🔬 Iniciando renderizado de MathJax...');
+            await window.mathRenderSystem.queueRender(elements.questionModal, 300);
+            console.log('✅ Pregunta y matemáticas renderizadas correctamente');
+        } catch (error) {
+            console.error('❌ Error renderizando pregunta:', error);
+        }
+    }, 200);
 }
 
+// 🎯 displayOptions() mejorada
 async function displayOptions() {
     elements.optionsContainer.innerHTML = '';
     gameState.selectedAnswer = null;
@@ -972,11 +1103,15 @@ async function displayOptions() {
         elements.optionsContainer.appendChild(btn);
     });
     
-    try {
-        await window.mathRenderSystem.queueRender(elements.optionsContainer, 50);
-    } catch (error) {
-        console.error('❌ Error renderizando opciones:', error);
-    }
+    // 🔧 Pequeño delay para renderizar opciones con MathJax
+    setTimeout(async () => {
+        try {
+            await window.mathRenderSystem.queueRender(elements.optionsContainer, 100);
+            console.log('✅ Opciones renderizadas');
+        } catch (error) {
+            console.error('❌ Error renderizando opciones:', error);
+        }
+    }, 100);
 }
 
 function selectOption(index, btnEl) {
@@ -1020,37 +1155,63 @@ function submitAnswer() {
         }
     }
     
+    // 🚨 LIMPIAR ESTADO DE PREGUNTA
     gameState.currentQuestion = null;
-    elements.questionModal.style.display = 'none';
+    gameState.questionActive = false;
+    
+    // 🚨 Cerrar modal de pregunta usando ModalManager
+    ModalManager.closeModal('questionModal');
     updateUI();
 }
 
+// ================================================
+// 💬 FUNCIÓN showFeedback() MEJORADA
+// ================================================
+
 async function showFeedback(title, text, isCorrect, question) {
+    console.log('💬 Mostrando feedback:', title);
+    
+    // 🚨 Abrir modal de feedback usando ModalManager
+    if (!ModalManager.openModal('feedbackModal', 'feedback')) {
+        console.error('❌ No se pudo abrir modal de feedback');
+        return;
+    }
+    
     elements.feedbackTitle.textContent = title;
     elements.feedbackText.textContent = text;
     
     if (question && question.explanation) {
         elements.solutionContainer.style.display = 'block';
         elements.solutionContainer.innerHTML = `
-            <h4>💡 Explicación:</h4>
-            <p>${question.explanation}</p>
+            <div class="explanation-container">
+                <h4 class="explanation-title">💡 Explicación:</h4>
+                <div class="explanation-content">${question.explanation}</div>
+            </div>
         `;
     } else {
         elements.solutionContainer.style.display = 'none';
     }
     
-    elements.feedbackModal.style.display = 'flex';
     elements.nextButton.onclick = continueAfterFeedback;
     
-    try {
-        await window.mathRenderSystem.queueRender(elements.feedbackModal, 100);
-    } catch (error) {
-        console.error('❌ Error renderizando feedback:', error);
-    }
+    // 🔧 RENDERIZAR MATHJAX EN FEEDBACK CON DELAY
+    setTimeout(async () => {
+        try {
+            await window.mathRenderSystem.queueRender(elements.feedbackModal, 200);
+            console.log('✅ Feedback renderizado');
+        } catch (error) {
+            console.error('❌ Error renderizando feedback:', error);
+        }
+    }, 150);
 }
 
 function continueAfterFeedback() {
-    closeModal();
+    // 🚨 Cerrar modal usando ModalManager
+    ModalManager.closeModal('feedbackModal');
+    
+    // 🚨 Permitir curiosidades de nuevo
+    gameState.curiosityBlocked = false;
+    
     const required = CONFIG.LEVELS[gameState.currentLevel].questions;
     
     if (gameState.currentLevelProgress < required) {
@@ -1087,7 +1248,7 @@ function completeLevel() {
         </div>
     `;
     
-    elements.levelUpModal.style.display = 'flex';
+    ModalManager.openModal('levelUpModal', 'levelup');
     
     const nextLevelButton = document.getElementById('nextLevelButton');
     if (gameState.currentLevel >= Object.keys(CONFIG.LEVELS).length) {
@@ -1107,7 +1268,7 @@ function advanceLevel() {
         gameState.currentLevelProgress = 0; 
         elements.levelSelect.value = gameState.currentLevel; 
         updateUI(); 
-        closeModal(); 
+        ModalManager.closeModal('levelUpModal');
         elements.startButton.disabled = false; 
         
         console.log('⬆️ Nivel avanzado');
@@ -1117,7 +1278,7 @@ function advanceLevel() {
 }
 
 function showFinalStats(title) { 
-    closeModal(); 
+    ModalManager.closeAllModals();
     gameState.isGameActive = false; 
     
     const accuracy = (gameState.correctAnswers / (gameState.questionsAnswered || 1) * 100).toFixed(1); 
@@ -1137,7 +1298,7 @@ function showFinalStats(title) {
         </div>
     `; 
     
-    elements.finalStatsModal.style.display = 'flex'; 
+    ModalManager.openModal('finalStatsModal', 'finalstats');
 }
 
 function completeGame() { 
@@ -1158,14 +1319,19 @@ function togglePause() {
     if (!gameState.isGameActive) return; 
     
     gameState.isPaused = !gameState.isPaused; 
-    elements.pauseModal.style.display = gameState.isPaused ? 'flex' : 'none'; 
+    
+    if (gameState.isPaused) {
+        ModalManager.openModal('pauseModal', 'pause');
+    } else {
+        ModalManager.closeModal('pauseModal');
+    }
     
     console.log('⏸️ Juego pausado/reanudado');
 }
 
 function resumeGame() { 
     gameState.isPaused = false; 
-    closeModal(); 
+    ModalManager.closeModal('pauseModal');
 }
 
 function resetGame() { 
@@ -1182,7 +1348,7 @@ function resetGame() {
     elements.levelSelect.disabled = false; 
     elements.topicCheckboxes.forEach(cb => cb.disabled = false); 
     
-    closeModal(); 
+    ModalManager.closeAllModals();
     initializeStars(); 
     initializeCosmicObjects(); 
     updateUI(); 
@@ -1203,23 +1369,15 @@ function updateSelectedTopics() {
 }
 
 // ================================================
-// 📚 FUNCIONES DE MODAL Y UI
+// 📚 FUNCIONES DE MODAL Y UI MEJORADAS
 // ================================================
 
 function showHelpModal() { 
-    elements.helpModal.style.display = 'flex'; 
-}
-
-function closeModal() { 
-    document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); 
-    
-    if (gameState.isPaused && !gameState.currentQuestion) {
-        resumeGame();
-    }
+    ModalManager.openModal('helpModal', 'help');
 }
 
 // ================================================
-// 🎨 FÍSICA Y ANIMACIÓN DE OBJETOS
+// 🎨 FÍSICA Y ANIMACIÓN DE OBJETOS MEJORADA
 // ================================================
 
 function updateSpaceship() { 
@@ -1269,12 +1427,20 @@ function checkCollision(ship, obj) {
     return distance < minDistance;
 }
 
+// 🚨 FUNCIÓN handleCollision() MEJORADA PARA EVITAR CONFLICTOS
 function handleCollision(obj) { 
     if (audioSystem) audioSystem.play('collision'); 
     
     createParticleExplosion(obj.x, obj.y, 25, gameState.particles); 
     
-    if (obj.type === 'meteorite' && !gameState.isPaused && Math.random() < 0.5) { 
+    // 🚨 SOLO MOSTRAR CURIOSIDADES SI NO HAY PREGUNTA ACTIVA Y NO ESTÁN BLOQUEADAS
+    if (obj.type === 'meteorite' && 
+        !gameState.isPaused && 
+        !gameState.questionActive && 
+        !gameState.curiosityBlocked &&
+        !ModalManager.hasModalOfType('question') &&
+        Math.random() < 0.5) { 
+        
         gameState.isPaused = true; 
         setTimeout(() => { 
             showPhysicsInfo(); 
@@ -1282,21 +1448,48 @@ function handleCollision(obj) {
     } 
 }
 
+// 🚨 FUNCIÓN showPhysicsInfo() MEJORADA CON MODAL MANAGER
 function showPhysicsInfo() { 
+    // 🎯 Verificar que no hay conflicto con preguntas
+    if (gameState.questionActive || 
+        gameState.curiosityBlocked || 
+        ModalManager.hasModalOfType('question')) {
+        gameState.isPaused = false;
+        console.log('⚠️ Curiosidad bloqueada por pregunta activa');
+        return;
+    }
+    
     const curiosity = getRandomCuriosity();
+    
+    // 🚨 Usar ModalManager para mostrar curiosidad como feedback
+    if (!ModalManager.openModal('feedbackModal', 'curiosity')) {
+        gameState.isPaused = false;
+        return;
+    }
     
     elements.feedbackTitle.textContent = `🧑‍🚀 ${curiosity.title}`; 
     elements.feedbackText.innerHTML = ''; 
     elements.solutionContainer.style.display = 'block'; 
-    elements.solutionContainer.innerHTML = curiosity.content; 
-    elements.feedbackModal.style.display = 'flex'; 
+    elements.solutionContainer.innerHTML = `
+        <div class="curiosity-container">
+            <div class="curiosity-content">${curiosity.content}</div>
+        </div>
+    `;
     elements.nextButton.textContent = "🚀 Entendido"; 
     elements.nextButton.onclick = () => { 
         gameState.isPaused = false; 
-        closeModal(); 
+        ModalManager.closeModal('feedbackModal');
     }; 
     
-    window.mathRenderSystem.queueRender(elements.feedbackModal, 100); 
+    // 🔧 Renderizar MathJax en curiosidades
+    setTimeout(async () => {
+        try {
+            await window.mathRenderSystem.queueRender(elements.feedbackModal, 200);
+            console.log('✅ Curiosidad renderizada');
+        } catch (error) {
+            console.error('❌ Error renderizando curiosidad:', error);
+        }
+    }, 150);
 }
 
 function createParticleExplosion(x, y, count, particleArray) { 
@@ -1697,6 +1890,22 @@ function initializeGame() {
     updateUI();
     gameLoop();
     
+    // 🔧 INICIALIZAR SISTEMA MATEMÁTICO CUANDO MATHJAX ESTÉ LISTO
+    if (window.MathJax && MathJax.startup) {
+        MathJax.startup.promise.then(() => {
+            window.mathRenderSystem.initialize();
+            console.log('✅ Sistema matemático listo');
+        });
+    } else {
+        // 🔄 Fallback: intentar inicializar después de un delay
+        setTimeout(() => {
+            if (window.MathJax && window.mathRenderSystem) {
+                window.mathRenderSystem.initialize();
+                console.log('✅ Sistema matemático inicializado (fallback)');
+            }
+        }, 2000);
+    }
+    
     console.log('✅ Juego inicializado correctamente');
 }
 
@@ -1715,6 +1924,8 @@ document.addEventListener('DOMContentLoaded', () => {
             window.debugGame = () => console.log('🐛 Estado:', gameState);
             window.triggerExplosion = triggerFooterExplosion; // Para testing
             window.updateConfigForOrientation = updateConfigForOrientation; // Para testing
+            window.testMathJax = () => window.mathRenderSystem.renderMath(document.body);
+            window.debugModals = () => console.log('🪟 Modales:', ModalManager);
             
             // 📐 Funciones de debug de orientación
             window.debugOrientation = () => {
@@ -1745,6 +1956,8 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('- testOrientationChange()');
             console.log('- toggleOrientationLock()');
             console.log('- updateConfigForOrientation()');
+            console.log('- testMathJax()');
+            console.log('- debugModals()');
         }
     }, 100);
 });
@@ -1791,5 +2004,6 @@ window.setupOrientationIntegration = setupOrientationIntegration;
 window.updateConfigForOrientation = updateConfigForOrientation;
 window.handleOrientationChange = handleOrientationChange;
 window.resizeCanvas = resizeCanvas;
+window.ModalManager = ModalManager;
 
-console.log('📜 game.js mejorado con orientación cargado completamente');
+console.log('📜 game.js mejorado con modales verticales, MathJax funcional y sin conflictos cargado completamente');
