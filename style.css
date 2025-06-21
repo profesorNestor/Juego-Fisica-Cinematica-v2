@@ -1,0 +1,761 @@
+/* ================================================
+   🎨 ACADEMIA ESPACIAL - HOJA DE ESTILOS FUTURISTA
+   Archivo: style.css
+   ================================================ */
+
+/* 🌌 VARIABLES GLOBALES - PALETA DE COLORES ESPACIALES */
+:root {
+    --primary-color: #00faff;      /* 🔵 Cian brillante */
+    --secondary-color: #ff00ff;    /* 🟣 Magenta vibrante */
+    --accent-color: #ffff00;       /* 🟡 Amarillo eléctrico */
+    --background-dark: #0a0a1f;    /* 🌑 Azul oscuro espacial */
+    --background-light: #1a1a3f;   /* 🌒 Azul medio espacial */
+    --text-light: #e0fbfc;         /* ⚪ Texto claro */
+    --success-color: #00ff88;      /* 🟢 Verde éxito */
+    --error-color: #ff4444;        /* 🔴 Rojo error */
+    --warning-color: #ffaa00;      /* 🟠 Naranja advertencia */
+    --glass-bg: rgba(10, 10, 31, 0.5);        /* 🪟 Fondo cristal */
+    --glass-border: rgba(0, 250, 255, 0.2);   /* 🪟 Borde cristal */
+}
+
+/* 🌍 CONFIGURACIÓN BASE DEL DOCUMENTO */
+html, body {
+    margin: 0; 
+    padding: 0; 
+    width: 100%; 
+    height: 100%; 
+    overflow: auto; 
+    font-family: 'Exo 2', sans-serif;
+    background: var(--background-dark);
+    color: var(--text-light);
+}
+
+/* 🎮 CONTENEDOR PRINCIPAL DEL JUEGO */
+.game-wrapper {
+    width: 100%; 
+    min-height: 100vh; 
+    display: flex; 
+    flex-direction: column;
+    background: linear-gradient(135deg, var(--background-dark) 0%, #1a1a3f 50%, #0a0a1f 100%);
+}
+
+/* 🎯 CANVAS - ZONA DE JUEGO PRINCIPAL */
+canvas {
+    flex-grow: 1;
+    touch-action: none;
+    display: block;
+    min-height: 200px;
+}
+
+/* 🪟 PANELES HOLOGRÁFICOS CON EFECTO GLASSMORPHISM */
+.stats-bar, .controls-container {
+    font-family: 'Orbitron', sans-serif;
+    color: var(--primary-color);
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px); /* 🍎 Soporte para Safari */
+    border: 1px solid var(--glass-border);
+    padding: 1rem;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    flex-shrink: 0;
+    position: relative;
+    text-shadow: 0 0 4px var(--primary-color);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37), 
+                inset 0 1px 1px rgba(255, 255, 255, 0.1);
+    margin: 10px;
+    border-radius: 16px;
+}
+
+/* 📊 ESTADÍSTICAS Y GRUPOS DE CONTROL */
+.stat, .control-group {
+    display: flex; 
+    align-items: center; 
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(0, 250, 255, 0.1);
+    transition: all 0.3s ease;
+    font-size: 0.8rem;
+}
+
+/* 📚 SELECTOR DE TEMAS DE FÍSICA */
+.topic-switcher {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 8px; 
+    margin-bottom: 10px; 
+    width: 100%;
+}
+
+/* 🎛️ ETIQUETAS DE TEMAS CON EFECTO CRISTAL */
+.topic-switcher label {
+    padding: 10px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    font-size: 0.8rem;
+    text-align: center;
+    position: relative;
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.4));
+    border: 1px solid rgba(0, 250, 255, 0.2);
+    color: rgba(0, 250, 255, 0.7);
+    text-shadow: none;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+}
+
+/* ✨ EFECTOS HOVER PARA TEMAS */
+.topic-switcher label:hover {
+    color: var(--text-light);
+    background: rgba(0, 250, 255, 0.1);
+    border-color: rgba(0, 250, 255, 0.7);
+    transform: translateY(-2px);
+    box-shadow: 0 0 15px -5px var(--primary-color);
+}
+
+/* 🔘 OCULTAR CHECKBOXES NATIVOS */
+.topic-switcher input[type="checkbox"] { 
+    display: none; 
+}
+
+/* ✅ TEMA SELECCIONADO CON BRILLO INTENSO */
+.topic-switcher input[type="checkbox"]:checked + label {
+    background: var(--primary-color);
+    color: var(--background-dark);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 25px var(--primary-color), 
+                inset 0 0 10px rgba(255,255,255,0.5);
+    text-shadow: none;
+    font-weight: bold;
+    transform: translateY(-2px) scale(1.05);
+}
+
+/* 🚀 BOTONES DE ACCIÓN PRINCIPALES */
+.game-button {
+    font-family: 'Orbitron', sans-serif;
+    background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0));
+    color: var(--text-light); 
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    border-radius: 12px;
+    padding: 10px 18px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-shadow: 0 0 8px rgba(0,0,0,0.7);
+    position: relative;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+/* 🌈 BORDE ANIMADO CON GRADIENTE */
+.game-button::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0; bottom: 0; left: 0;
+    z-index: -1;
+    margin: -2px; 
+    border-radius: inherit; 
+    background: linear-gradient(120deg, var(--secondary-color), var(--primary-color), var(--accent-color));
+    transition: all 0.4s ease;
+}
+
+/* ✨ EFECTOS HOVER PARA BOTONES */
+.game-button:hover::before {
+    filter: brightness(1.3);
+    background-size: 200%;
+}
+
+.game-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+    text-shadow: 0 0 5px var(--text-light);
+}
+
+/* 🎯 ESTADOS DE BOTONES */
+.game-button:active { 
+    transform: translateY(-1px); 
+}
+
+.game-button:disabled { 
+    background: rgba(0,0,0,0.3); 
+    color: rgba(255,255,255,0.3); 
+    cursor: not-allowed; 
+    box-shadow: none; 
+    transform: none; 
+}
+
+.game-button:disabled::before { 
+    background: rgba(255,255,255,0.1); 
+}
+
+/* 🎨 COLORES ESPECÍFICOS PARA TIPOS DE BOTONES */
+.btn-success::before { 
+    background: linear-gradient(120deg, var(--success-color), var(--primary-color)); 
+}
+
+.btn-warning::before { 
+    background: linear-gradient(120deg, var(--warning-color), var(--accent-color)); 
+}
+
+#resetButton::before { 
+    background: linear-gradient(120deg, var(--error-color), var(--secondary-color)); 
+}
+
+/* 🪟 VENTANAS MODALES CON BACKDROP BLUR */
+.modal { 
+    display: none; 
+    position: fixed; 
+    z-index: 1000; 
+    left: 0; top: 0; 
+    width: 100%; height: 100%; 
+    overflow: auto; 
+    background-color: rgba(10,10,31,0.6); 
+    align-items: center; 
+    justify-content: center; 
+    backdrop-filter: blur(8px); 
+    -webkit-backdrop-filter: blur(8px); 
+}
+
+/* 📦 CONTENIDO DE MODALES */
+.modal-content { 
+    background: var(--glass-bg); 
+    border: 1px solid var(--primary-color); 
+    padding: 20px; 
+    border-radius: 16px; 
+    text-align: center; 
+    width: 90%; 
+    max-width: 500px; 
+    color: var(--text-light); 
+    box-shadow: 0 0 50px -10px rgba(0, 250, 255, 0.4); 
+    max-height: 90vh; 
+    overflow-y: auto; 
+    position: relative; 
+    animation: modalAppear 0.4s cubic-bezier(0.25, 1, 0.5, 1); 
+}
+
+/* 🎭 ANIMACIÓN DE APARICIÓN DE MODALES */
+@keyframes modalAppear { 
+    from { 
+        opacity: 0; 
+        transform: scale(0.8) translateY(-20px); 
+    } 
+    to { 
+        opacity: 1; 
+        transform: scale(1) translateY(0); 
+    } 
+}
+
+/* 📝 TÍTULOS DE MODALES */
+.modal-content h2 { 
+    font-family: 'Orbitron', sans-serif; 
+    color: var(--primary-color); 
+    margin-bottom: 15px; 
+    font-size: 1.5rem; 
+    text-shadow: 0 0 10px var(--primary-color); 
+}
+
+/* 🎯 BOTONES DE OPCIONES EN PREGUNTAS */
+.option-button { 
+    background: rgba(0,0,0, 0.2); 
+    border: 1px solid var(--glass-border); 
+    color: var(--text-light); 
+    width: 100%; 
+    padding: 12px; 
+    margin: 6px 0; 
+    font-size: 0.9rem; 
+    cursor: pointer; 
+    border-radius: 10px; 
+    transition: all 0.3s ease; 
+    position: relative; 
+}
+
+.option-button:hover { 
+    background-color: rgba(0, 250, 255, 0.15); 
+    border-color: var(--primary-color); 
+    transform: scale(1.02); 
+}
+
+.option-button.selected { 
+    background: var(--primary-color); 
+    color: var(--background-dark); 
+    border-color: var(--primary-color); 
+    box-shadow: 0 0 15px var(--primary-color); 
+    font-weight: 600; 
+    transform: scale(1.02); 
+}
+
+/* 🧮 CONTENEDOR DE SOLUCIONES */
+#solution-container { 
+    margin-top: 20px; 
+    padding: 15px; 
+    border-top: 1px solid var(--glass-border); 
+    text-align: left; 
+    font-family: 'Inter', sans-serif; 
+    background: rgba(0, 0, 0, 0.3); 
+    border-radius: 8px; 
+    font-size: 1em; 
+    line-height: 1.7; 
+}
+
+#solution-container h4 { 
+    color: var(--accent-color); 
+    margin-bottom: 10px; 
+    font-family: 'Orbitron', sans-serif; 
+    text-shadow: 0 0 5px var(--accent-color); 
+}
+
+/* 📊 BARRA DE PROGRESO ANIMADA */
+.progress-bar { 
+    width: 100%; 
+    height: 6px; 
+    background: rgba(0,0,0,0.3); 
+    border-radius: 3px; 
+    overflow: hidden; 
+    margin-top: 5px; 
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.5); 
+}
+
+.progress-fill { 
+    height: 100%; 
+    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color)); 
+    border-radius: 3px; 
+    transition: width 0.5s ease; 
+    box-shadow: 0 0 8px var(--primary-color); 
+}
+
+/* ❤️ INDICADOR DE VIDAS CON LATIDO */
+.lives-container { 
+    display: flex; 
+    gap: 5px; 
+}
+
+.heart { 
+    color: var(--error-color); 
+    font-size: 1.2rem; 
+    animation: heartbeat 1.5s infinite; 
+    filter: drop-shadow(0 0 4px var(--error-color)); 
+}
+
+.heart.lost { 
+    color: rgba(255,255,255,0.15); 
+    animation: none; 
+    filter: none; 
+}
+
+/* 💓 ANIMACIÓN DE LATIDO DEL CORAZÓN */
+@keyframes heartbeat { 
+    0%, 100% { transform: scale(1); } 
+    50% { transform: scale(1.15); } 
+}
+
+/* 🚀 PIE DE PÁGINA GALÁCTICO */
+.galactic-footer { 
+    padding: 15px; 
+    background: linear-gradient(0deg, #000008 0%, var(--background-dark) 100%); 
+    text-align: center; 
+    font-family: 'Orbitron', sans-serif; 
+    color: var(--primary-color); 
+    text-shadow: 0 0 8px var(--primary-color); 
+    position: relative; 
+    flex-shrink: 0; 
+    overflow: hidden; 
+    border-top: 1px solid var(--glass-border); 
+    box-shadow: 0 -5px 20px -5px rgba(0, 250, 255, 0.2); 
+}
+
+.footer-author { 
+    font-size: 0.9rem; 
+    font-weight: bold; 
+    letter-spacing: 1px; 
+    position: relative; 
+    z-index: 1; 
+    transition: transform 0.2s ease; 
+}
+
+#footer-ship { 
+    position: absolute; 
+    font-size: 1.5rem; 
+    bottom: 8px; 
+    left: -50px; 
+}
+
+/* 💥 EXPLOSIONES ANIMADAS EN EL FOOTER */
+.footer-explosion {
+    position: absolute;
+    font-size: 1.5rem;
+    bottom: 10px;
+    animation: explosion 2s ease-out forwards;
+    pointer-events: none;
+    z-index: 10;
+}
+
+@keyframes explosion {
+    0% { 
+        transform: scale(0.2) rotate(0deg); 
+        opacity: 1; 
+    }
+    50% { 
+        transform: scale(1.2) rotate(180deg); 
+        opacity: 0.8; 
+    }
+    100% { 
+        transform: scale(2) rotate(360deg); 
+        opacity: 0; 
+    }
+}
+
+/* 📱 TEXTO RESPONSIVO EN BOTONES */
+.btn-text { display: none; } 
+.btn-icon { display: inline; font-size: 1.2rem; }
+
+/* 💻 MEDIA QUERY PARA PANTALLAS GRANDES */
+@media (min-width: 768px) {
+    /* 📊 Paneles más espaciosos */
+    .stats-bar, .controls-container { 
+        padding: 1.25rem; 
+        gap: 20px; 
+    }
+    
+    /* 📈 Estadísticas más grandes */
+    .stat, .control-group { 
+        padding: 8px 15px; 
+        gap: 10px; 
+        font-size: 1rem; 
+    }
+    
+    /* 🏷️ Etiquetas de temas más grandes */
+    .topic-switcher label { 
+        font-size: 0.9rem; 
+        padding: 10px 15px; 
+    }
+    
+    /* 🚀 Botones más prominentes */
+    .game-button { 
+        font-size: 1rem; 
+        padding: 12px 25px; 
+    }
+    
+    /* 🪟 Modales más espaciosas */
+    .modal-content { 
+        max-width: 600px; 
+        padding: 30px; 
+    }
+    
+    /* 📝 Títulos de modales más grandes */
+    .modal-content h2 { 
+        font-size: 1.8rem; 
+    }
+    
+    /* 🎯 Botones de opciones más cómodos */
+    .option-button { 
+        padding: 15px; 
+        font-size: 1rem; 
+    }
+    
+    /* 👨‍🚀 Footer más prominente */
+    .footer-author { 
+        font-size: 1rem; 
+    }
+    
+    /* 📱 Mostrar texto en botones */
+    .btn-text { 
+        display: inline; 
+    }
+    
+    .btn-icon { 
+        margin-right: 8px; 
+        font-size: 1rem; 
+    }
+}
+
+/* ================================================
+   🎯 CLASES ADICIONALES Y UTILIDADES
+   ================================================ */
+
+/* 🔧 Clase para texto con brillo */
+.text-glow {
+    text-shadow: 0 0 10px currentColor;
+}
+
+/* 🎨 Clase para elementos pulsantes */
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* 🌟 Clase para elementos brillantes */
+.shine {
+    background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.3) 50%, transparent 70%);
+    background-size: 200% 100%;
+    animation: shine 3s infinite;
+}
+
+@keyframes shine {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* 🎮 Estados especiales para el canvas */
+.canvas-paused {
+    filter: blur(2px) brightness(0.7);
+    transition: filter 0.3s ease;
+}
+
+/* 🚀 Animación de entrada para elementos */
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* 🎯 Animación de salida para elementos */
+.fade-out {
+    animation: fadeOut 0.3s ease-out forwards;
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; transform: scale(1); }
+    to { opacity: 0; transform: scale(0.8); }
+}
+
+/* 💫 Efectos de partículas (simulado con CSS) */
+.particle-effect {
+    position: relative;
+    overflow: hidden;
+}
+
+.particle-effect::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: 
+        radial-gradient(2px 2px at 20% 30%, rgba(255,255,255,0.3), transparent),
+        radial-gradient(2px 2px at 40% 70%, rgba(0,250,255,0.3), transparent),
+        radial-gradient(1px 1px at 90% 40%, rgba(255,0,255,0.3), transparent);
+    background-size: 100px 100px, 80px 80px, 60px 60px;
+    animation: particles 10s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes particles {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(-100px, -100px); }
+}
+
+/* 🎨 Clases de utilidad para colores */
+.text-primary { color: var(--primary-color) !important; }
+.text-secondary { color: var(--secondary-color) !important; }
+.text-accent { color: var(--accent-color) !important; }
+.text-success { color: var(--success-color) !important; }
+.text-error { color: var(--error-color) !important; }
+.text-warning { color: var(--warning-color) !important; }
+
+.bg-primary { background-color: var(--primary-color) !important; }
+.bg-secondary { background-color: var(--secondary-color) !important; }
+.bg-accent { background-color: var(--accent-color) !important; }
+
+/* 🔧 Clases de utilidad para bordes */
+.border-primary { border-color: var(--primary-color) !important; }
+.border-secondary { border-color: var(--secondary-color) !important; }
+.border-accent { border-color: var(--accent-color) !important; }
+
+/* 🎯 Scrollbar personalizado para elementos con scroll */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 4px;
+    box-shadow: 0 0 5px var(--primary-color);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--secondary-color);
+}
+
+/* ================================================
+   🐛 CORRECCIONES Y FIXES ESPECÍFICOS
+   ================================================ */
+
+/* 🔧 Fix para Webkit específicos */
+@supports (-webkit-backdrop-filter: blur(10px)) {
+    .stats-bar, .controls-container, .modal-content {
+        -webkit-backdrop-filter: blur(10px);
+    }
+}
+
+/* 🔧 Fix para navegadores que no soportan backdrop-filter */
+@supports not (backdrop-filter: blur(10px)) {
+    .stats-bar, .controls-container {
+        background: rgba(10, 10, 31, 0.8);
+    }
+    
+    .modal {
+        background-color: rgba(10, 10, 31, 0.9);
+    }
+}
+
+/* 🔧 Fix para dispositivos con pantalla táctil */
+@media (hover: none) and (pointer: coarse) {
+    .game-button:hover {
+        transform: none;
+    }
+    
+    .option-button:hover {
+        transform: none;
+        background-color: rgba(0, 250, 255, 0.1);
+    }
+    
+    .topic-switcher label:hover {
+        transform: none;
+    }
+}
+
+/* ================================================
+   🎮 ANIMACIONES ESPECÍFICAS DEL JUEGO
+   ================================================ */
+
+/* 🚀 Animación para la nave espacial */
+@keyframes spaceshipPulse {
+    0%, 100% { 
+        filter: drop-shadow(0 0 5px var(--primary-color)); 
+    }
+    50% { 
+        filter: drop-shadow(0 0 15px var(--primary-color)) 
+                drop-shadow(0 0 25px var(--primary-color)); 
+    }
+}
+
+.spaceship-glow {
+    animation: spaceshipPulse 2s ease-in-out infinite;
+}
+
+/* ⭐ Animación para las estrellas del fondo */
+@keyframes twinkle {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+}
+
+.star-twinkle {
+    animation: twinkle 3s ease-in-out infinite;
+}
+
+/* 💥 Animación para explosiones de partículas */
+@keyframes explode {
+    0% { 
+        transform: scale(0) rotate(0deg); 
+        opacity: 1; 
+    }
+    50% { 
+        transform: scale(1) rotate(180deg); 
+        opacity: 0.8; 
+    }
+    100% { 
+        transform: scale(2) rotate(360deg); 
+        opacity: 0; 
+    }
+}
+
+.explosion-particle {
+    animation: explode 1s ease-out forwards;
+}
+
+/* ================================================
+   📱 OPTIMIZACIONES PARA RENDIMIENTO
+   ================================================ */
+
+/* 🔧 Optimización para animaciones */
+.game-button,
+.option-button,
+.topic-switcher label,
+.progress-fill,
+.heart {
+    will-change: transform;
+}
+
+/* 🔧 Optimización para elementos que cambian frecuentemente */
+#gameCanvas,
+.stats-bar,
+.progress-fill,
+#livesContainer {
+    will-change: auto;
+}
+
+/* 🔧 Aceleración por hardware para elementos críticos */
+.game-button,
+.modal-content,
+.spaceship-glow {
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+}
+
+/* ================================================
+   🌙 MODO OSCURO ADICIONAL (POR SI SE NECESITA)
+   ================================================ */
+
+@media (prefers-color-scheme: dark) {
+    /* El juego ya está en modo oscuro por defecto, 
+       pero aquí se pueden agregar ajustes adicionales */
+    
+    .modal-content {
+        background: rgba(5, 5, 15, 0.95);
+    }
+    
+    .option-button {
+        background: rgba(0, 0, 0, 0.4);
+    }
+}
+
+/* ================================================
+   🎯 CLASES DE DEBUGGING (SOLO PARA DESARROLLO)
+   ================================================ */
+
+/* 🐛 Mostrar bordes para debugging layout */
+.debug * {
+    outline: 1px solid rgba(255, 0, 0, 0.3) !important;
+}
+
+/* 🐛 Información de elemento en hover (para desarrollo) */
+.debug-info {
+    position: relative;
+}
+
+.debug-info::after {
+    content: attr(class);
+    position: absolute;
+    top: -20px;
+    left: 0;
+    background: rgba(0, 0, 0, 0.8);
+    color: var(--primary-color);
+    font-size: 10px;
+    padding: 2px 5px;
+    border-radius: 3px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.debug-info:hover::after {
+    opacity: 1;
+}
