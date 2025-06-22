@@ -1,7 +1,9 @@
 // ================================================
-// 🧠 BANCO DE DATOS CURIOSOS DE FÍSICA
-// Archivo: curiosities.js
+// 🧠 BANCO DE DATOS CURIOSOS DE FÍSICA - VERSIÓN MEJORADA
+// Archivo: curiosities.js v2.1 (Mejorado para mayor visibilidad)
 // ================================================
+
+console.log('🧠 Cargando banco de curiosidades MEJORADO v2.1...');
 
 /* 🎯 ESTRUCTURA DE CURIOSIDAD:
  * {
@@ -44,6 +46,13 @@ const curiosityDatabase = {
             category: 'fundamental',
             difficulty: 2,
             source: 'Principia Mathematica - Newton'
+        },
+        {
+            title: 'Número de Avogadro',
+            content: 'Un mol de cualquier sustancia contiene exactamente $$6.022 \\times 10^{23}$$ partículas. ¡Si contaras un átomo por segundo, tardarías 19 mil millones de años en contar un mol!',
+            category: 'fundamental',
+            difficulty: 1,
+            source: 'Química y Física Molecular'
         }
     ],
 
@@ -270,11 +279,11 @@ const curiosityDatabase = {
 };
 
 // ================================================
-// 🎯 FUNCIONES DE ACCESO A CURIOSIDADES
+// 🎯 FUNCIONES DE ACCESO A CURIOSIDADES MEJORADAS
 // ================================================
 
 /**
- * 🎲 Obtiene una curiosidad completamente aleatoria
+ * 🎲 Obtiene una curiosidad completamente aleatoria - MEJORADA
  * @returns {Object} Objeto curiosidad con título y contenido
  */
 function getRandomCuriosity() {
@@ -288,6 +297,7 @@ function getRandomCuriosity() {
     });
     
     if (allCuriosities.length === 0) {
+        console.warn('⚠️ No hay curiosidades disponibles');
         return {
             title: 'Dato Curioso',
             content: 'La física está llena de maravillas esperando ser descubiertas. ¡Sigue explorando!',
@@ -297,7 +307,10 @@ function getRandomCuriosity() {
     }
     
     const randomIndex = Math.floor(Math.random() * allCuriosities.length);
-    return allCuriosities[randomIndex];
+    const selectedCuriosity = allCuriosities[randomIndex];
+    
+    console.log(`✨ Curiosidad seleccionada: ${selectedCuriosity.title} (${selectedCuriosity.category})`);
+    return selectedCuriosity;
 }
 
 /**
@@ -306,7 +319,9 @@ function getRandomCuriosity() {
  * @returns {Array} Array de curiosidades de la categoría
  */
 function getCuriositiesByCategory(category) {
-    return curiosityDatabase[category] || [];
+    const result = curiosityDatabase[category] || [];
+    console.log(`📚 Curiosidades encontradas en ${category}: ${result.length}`);
+    return result;
 }
 
 /**
@@ -325,6 +340,7 @@ function getCuriositiesByDifficulty(difficulty) {
         });
     });
     
+    console.log(`⭐ Curiosidades nivel ${difficulty}: ${filtered.length}`);
     return filtered;
 }
 
@@ -336,10 +352,15 @@ function getCuriositiesByDifficulty(difficulty) {
 function getRandomCuriosityByCategory(category) {
     const categoryItems = getCuriositiesByCategory(category);
     
-    if (categoryItems.length === 0) return null;
+    if (categoryItems.length === 0) {
+        console.warn(`⚠️ No se encontraron curiosidades en categoría: ${category}`);
+        return null;
+    }
     
     const randomIndex = Math.floor(Math.random() * categoryItems.length);
-    return categoryItems[randomIndex];
+    const selected = categoryItems[randomIndex];
+    console.log(`🎯 Curiosidad por categoría ${category}: ${selected.title}`);
+    return selected;
 }
 
 /**
@@ -365,6 +386,7 @@ function searchCuriosities(keyword) {
         });
     });
     
+    console.log(`🔍 Búsqueda "${keyword}": ${results.length} resultados`);
     return results;
 }
 
@@ -394,66 +416,19 @@ function getCuriosityStats() {
 }
 
 /**
- * 🎲 Obtiene múltiples curiosidades aleatorias sin repetir
- * @param {number} count - Número de curiosidades deseadas
- * @param {Array} excludeCategories - Categorías a excluir (opcional)
- * @returns {Array} Array de curiosidades únicas
- */
-function getMultipleRandomCuriosities(count, excludeCategories = []) {
-    const allCuriosities = [];
-    
-    Object.keys(curiosityDatabase).forEach(category => {
-        if (!excludeCategories.includes(category)) {
-            curiosityDatabase[category].forEach(curiosity => {
-                allCuriosities.push(curiosity);
-            });
-        }
-    });
-    
-    // 🔄 Mezclar array
-    for (let i = allCuriosities.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [allCuriosities[i], allCuriosities[j]] = [allCuriosities[j], allCuriosities[i]];
-    }
-    
-    return allCuriosities.slice(0, Math.min(count, allCuriosities.length));
-}
-
-/**
- * 🏷️ Obtiene el nombre de visualización de una categoría
- * @param {string} category - Código de la categoría
- * @returns {string} Nombre legible de la categoría
- */
-function getCategoryDisplayName(category) {
-    const displayNames = {
-        fundamental: '🌌 Física Fundamental',
-        electromagnetism: '⚡ Electromagnetismo',
-        thermodynamics: '🌡️ Termodinámica',
-        waves: '🌊 Ondas y Sonido',
-        astronomy: '🚀 Astronomía',
-        quantum: '⚛️ Física Cuántica',
-        mechanics: '🏃 Mecánica',
-        optics: '💎 Óptica',
-        earth_physics: '🌍 Física Terrestre'
-    };
-    
-    return displayNames[category] || category;
-}
-
-/**
- * 🎯 Obtiene curiosidades relacionadas con un tema de física específico
+ * 🎯 Obtiene curiosidades relacionadas con un tema de física específico - MEJORADA
  * @param {string} physicsTopic - Tema de física (magnitudes, cinematica, etc.)
  * @returns {Array} Array de curiosidades relacionadas
  */
 function getCuriositiesByPhysicsTopic(physicsTopic) {
     const topicMappings = {
         magnitudes: ['fundamental', 'mechanics'],
-        si: ['fundamental'],
+        si: ['fundamental', 'mechanics'],
         cinematica: ['mechanics', 'astronomy'],
-        mru: ['mechanics'],
-        mrua: ['mechanics'],
+        mru: ['mechanics', 'astronomy'],
+        mrua: ['mechanics', 'astronomy'],
         mcu: ['mechanics', 'astronomy'],
-        gravedad: ['mechanics', 'astronomy'],
+        gravedad: ['mechanics', 'astronomy', 'fundamental'],
         parabolico: ['mechanics', 'astronomy']
     };
     
@@ -464,195 +439,87 @@ function getCuriositiesByPhysicsTopic(physicsTopic) {
         results.push(...getCuriositiesByCategory(category));
     });
     
+    console.log(`🎓 Curiosidades para tema ${physicsTopic}: ${results.length} encontradas`);
     return results;
 }
 
 /**
- * 🧠 Obtiene una curiosidad educativa basada en el progreso del jugador
+ * 🧠 Obtiene una curiosidad educativa basada en el progreso del jugador - MEJORADA
  * @param {Object} gameState - Estado actual del juego
  * @returns {Object} Curiosidad apropiada para el contexto
  */
 function getContextualCuriosity(gameState) {
-    if (!gameState) return getRandomCuriosity();
+    console.log('🧠 Obteniendo curiosidad contextual...');
+    
+    if (!gameState) {
+        console.log('🔄 No hay gameState, devolviendo curiosidad aleatoria');
+        return getRandomCuriosity();
+    }
     
     // 🎯 Seleccionar dificultad basada en el nivel del jugador
     let targetDifficulty = 1;
     if (gameState.currentLevel >= 2) targetDifficulty = 2;
     if (gameState.currentLevel >= 3) targetDifficulty = 3;
     
+    console.log(`🎯 Nivel de dificultad objetivo: ${targetDifficulty} (Nivel jugador: ${gameState.currentLevel})`);
+    
     // 📚 Obtener curiosidades relacionadas con los temas seleccionados
     const topicCuriosities = [];
-    if (gameState.selectedTopics) {
+    if (gameState.selectedTopics && gameState.selectedTopics.length > 0) {
         gameState.selectedTopics.forEach(topic => {
-            topicCuriosities.push(...getCuriositiesByPhysicsTopic(topic));
+            const topicCurios = getCuriositiesByPhysicsTopic(topic);
+            topicCuriosities.push(...topicCurios);
+            console.log(`📖 Tema ${topic}: +${topicCurios.length} curiosidades`);
         });
     }
     
     // 🔍 Filtrar por dificultad apropiada
     const appropriateCuriosities = topicCuriosities.filter(c => c.difficulty <= targetDifficulty);
+    console.log(`✅ Curiosidades apropiadas: ${appropriateCuriosities.length}`);
     
     if (appropriateCuriosities.length > 0) {
         const randomIndex = Math.floor(Math.random() * appropriateCuriosities.length);
-        return appropriateCuriosities[randomIndex];
+        const selected = appropriateCuriosities[randomIndex];
+        console.log(`🎉 Curiosidad contextual seleccionada: ${selected.title}`);
+        return selected;
     }
     
     // 🔄 Fallback a curiosidad aleatoria de dificultad apropiada
     const fallbackCuriosities = getCuriositiesByDifficulty(targetDifficulty);
     if (fallbackCuriosities.length > 0) {
         const randomIndex = Math.floor(Math.random() * fallbackCuriosities.length);
-        return fallbackCuriosities[randomIndex];
+        const selected = fallbackCuriosities[randomIndex];
+        console.log(`🔄 Curiosidad fallback seleccionada: ${selected.title}`);
+        return selected;
     }
     
+    console.log('🎲 Usando curiosidad completamente aleatoria como último recurso');
     return getRandomCuriosity();
 }
 
-// ================================================
-// 🎨 CURIOSIDADES DINÁMICAS (GENERADAS PROCEDURALMENTE)
-// ================================================
-
 /**
- * 🔢 Genera curiosidades numéricas dinámicas
- * @returns {Object} Curiosidad con datos numéricos interesantes
+ * 🎮 Función mejorada específicamente para el juego
+ * @param {Object} gameState - Estado del juego
+ * @param {boolean} forceShow - Forzar mostrar curiosidad (para debugging)
+ * @returns {Object|null} Curiosidad o null
  */
-function generateNumericalCuriosity() {
-    const numericalFacts = [
-        {
-            title: 'Escala del Universo',
-            content: `El universo observable tiene un diámetro de aproximadamente $9.3 \\times 10^{26}$ metros. ¡Si fuera del tamaño de una pelota de fútbol, un átomo sería del tamaño de una canica!`,
-            difficulty: 2
-        },
-        {
-            title: 'Energía Nuclear',
-            content: `La fusión nuclear en el Sol convierte $4.26 \\times 10^9$ kg de masa en energía cada segundo según $E = mc^2$. ¡Es como si 4.26 millones de toneladas desaparecieran y se convirtieran en luz!`,
-            difficulty: 3
-        },
-        {
-            title: 'Densidad Extrema',
-            content: `La densidad de un agujero negro puede alcanzar $10^{18}$ kg/m³. ¡Un centímetro cúbico pesaría mil millones de toneladas!`,
-            difficulty: 2
-        },
-        {
-            title: 'Temperatura Estelar',
-            content: `El núcleo del Sol alcanza temperaturas de $15 \\times 10^6$ K. ¡A esta temperatura, incluso los átomos de hidrógeno se fusionan para formar helio!`,
-            difficulty: 2
-        }
-    ];
+function getGameCuriosity(gameState, forceShow = false) {
+    // 🎲 80% de probabilidad de mostrar curiosidad (era 40%)
+    const shouldShow = forceShow || Math.random() < 0.8;
     
-    const randomFact = numericalFacts[Math.floor(Math.random() * numericalFacts.length)];
-    return {
-        ...randomFact,
-        category: 'numerical',
-        source: 'Datos científicos'
-    };
-}
-
-/**
- * 🎲 Genera una curiosidad de comparación de escalas
- * @returns {Object} Curiosidad sobre escalas en el universo
- */
-function generateScaleCuriosity() {
-    const scaleComparisons = [
-        {
-            title: 'Del Átomo al Universo',
-            content: 'Si un átomo fuera del tamaño de una pelota de ping-pong, una pelota de ping-pong real sería del tamaño de la Tierra. ¡Y si la Tierra fuera una pelota de ping-pong, el universo observable sería como nuestro sistema solar!',
-            difficulty: 2
-        },
-        {
-            title: 'Velocidades Cósmicas',
-            content: 'Mientras caminas a $1.4 \\, m/s$, la Tierra gira a $460 \\, m/s$, orbita el Sol a $30,000 \\, m/s$, y el sistema solar se mueve por la galaxia a $220,000 \\, m/s$. ¡Nunca estás realmente quieto!',
-            difficulty: 2
-        },
-        {
-            title: 'Tiempo Cósmico',
-            content: 'Si la historia del universo (13.8 mil millones de años) fuera un año, la Tierra se formaría en septiembre, la vida compleja aparecería en noviembre, y toda la historia humana sería los últimos 14 segundos del año.',
-            difficulty: 1
-        }
-    ];
-    
-    const randomComparison = scaleComparisons[Math.floor(Math.random() * scaleComparisons.length)];
-    return {
-        ...randomComparison,
-        category: 'scale',
-        source: 'Comparaciones cósmicas'
-    };
-}
-
-// ================================================
-// 🎯 FUNCIONES DE VALIDACIÓN Y TESTING
-// ================================================
-
-/**
- * ✅ Valida la estructura del banco de curiosidades
- * @returns {Array} Array de errores encontrados (vacío si todo está correcto)
- */
-function validateCuriosityDatabase() {
-    const errors = [];
-    
-    Object.keys(curiosityDatabase).forEach(category => {
-        if (!Array.isArray(curiosityDatabase[category])) {
-            errors.push(`Categoría ${category}: debe ser un array`);
-            return;
-        }
-        
-        curiosityDatabase[category].forEach((curiosity, index) => {
-            // ✅ Validar campos obligatorios
-            if (!curiosity.title) {
-                errors.push(`${category}[${index}]: falta campo 'title'`);
-            }
-            if (!curiosity.content) {
-                errors.push(`${category}[${index}]: falta campo 'content'`);
-            }
-            if (!curiosity.category) {
-                errors.push(`${category}[${index}]: falta campo 'category'`);
-            }
-            if (!curiosity.difficulty || curiosity.difficulty < 1 || curiosity.difficulty > 3) {
-                errors.push(`${category}[${index}]: 'difficulty' debe ser 1, 2 o 3`);
-            }
-            
-            // ✅ Validar coherencia de categoría
-            if (curiosity.category !== category) {
-                errors.push(`${category}[${index}]: categoría inconsistente`);
-            }
-        });
-    });
-    
-    return errors;
-}
-
-/**
- * 🧪 Función de testing para verificar funcionalidad
- * @returns {Object} Resultados de las pruebas
- */
-function testCuriosityFunctions() {
-    const results = {
-        randomCuriosity: null,
-        categorySearch: null,
-        difficultyFilter: null,
-        stats: null,
-        validation: null
-    };
-    
-    try {
-        // 🎲 Test curiosidad aleatoria
-        results.randomCuriosity = getRandomCuriosity();
-        
-        // 📚 Test búsqueda por categoría
-        results.categorySearch = getCuriositiesByCategory('fundamental').length;
-        
-        // ⭐ Test filtro por dificultad
-        results.difficultyFilter = getCuriositiesByDifficulty(1).length;
-        
-        // 📊 Test estadísticas
-        results.stats = getCuriosityStats();
-        
-        // ✅ Test validación
-        results.validation = validateCuriosityDatabase();
-        
-    } catch (error) {
-        results.error = error.message;
+    if (!shouldShow) {
+        console.log('🎲 Dado de curiosidad: No mostrar esta vez');
+        return null;
     }
     
-    return results;
+    try {
+        const curiosity = getContextualCuriosity(gameState);
+        console.log(`🌟 ¡Curiosidad para el juego! ${curiosity.title}`);
+        return curiosity;
+    } catch (error) {
+        console.error('❌ Error obteniendo curiosidad para el juego:', error);
+        return getRandomCuriosity(); // Fallback seguro
+    }
 }
 
 // ================================================
@@ -667,90 +534,45 @@ window.getCuriositiesByDifficulty = getCuriositiesByDifficulty;
 window.getRandomCuriosityByCategory = getRandomCuriosityByCategory;
 window.searchCuriosities = searchCuriosities;
 window.getCuriosityStats = getCuriosityStats;
-window.getMultipleRandomCuriosities = getMultipleRandomCuriosities;
-window.getCategoryDisplayName = getCategoryDisplayName;
 window.getCuriositiesByPhysicsTopic = getCuriositiesByPhysicsTopic;
 window.getContextualCuriosity = getContextualCuriosity;
-window.generateNumericalCuriosity = generateNumericalCuriosity;
-window.generateScaleCuriosity = generateScaleCuriosity;
+window.getGameCuriosity = getGameCuriosity; // 🔧 NUEVA función específica para el juego
 
 // 🧪 Exponer funciones de testing en desarrollo
 if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    window.validateCuriosities = validateCuriosityDatabase;
-    window.testCuriosities = testCuriosityFunctions;
-    console.log('🧪 Funciones de testing disponibles: validateCuriosities(), testCuriosities()');
+    window.validateCuriosities = () => {
+        console.log('🧪 Validando banco de curiosidades...');
+        const stats = getCuriosityStats();
+        console.table(stats.byCategory);
+        console.log(`✅ Total: ${stats.totalCuriosities} curiosidades`);
+        
+        // Test de funciones
+        console.log('🎲 Test curiosidad aleatoria:', getRandomCuriosity().title);
+        console.log('🎯 Test curiosidad por tema:', getCuriositiesByPhysicsTopic('gravedad').length, 'encontradas');
+        
+        return stats;
+    };
+    
+    console.log('🧪 Funciones de testing disponibles: window.validateCuriosities()');
 }
 
 // 📊 Mostrar estadísticas al cargar
-console.log('🧠 Banco de curiosidades cargado:');
-console.log(getCuriosityStats());
+const initialStats = getCuriosityStats();
+console.log('🧠 Banco de curiosidades MEJORADO cargado:');
+console.log(`✅ ${initialStats.totalCuriosities} curiosidades en ${initialStats.categories.length} categorías`);
+console.log('📊 Por dificultad:', initialStats.byDifficulty);
 
-// ✅ Ejecutar validación automática
-const validationErrors = validateCuriosityDatabase();
-if (validationErrors.length > 0) {
-    console.warn('⚠️ Errores encontrados en el banco de curiosidades:', validationErrors);
-} else {
-    console.log('✅ Banco de curiosidades validado correctamente');
+// 🎮 Test inicial para asegurar que funciona
+try {
+    const testCuriosity = getRandomCuriosity();
+    console.log(`🧪 Test inicial exitoso: "${testCuriosity.title}"`);
+} catch (error) {
+    console.error('❌ Error en test inicial de curiosidades:', error);
 }
 
-// ================================================
-// 📚 DOCUMENTACIÓN DE USO
-// ================================================
-
-/*
-🎯 GUÍA DE USO DE CURIOSITIES.JS:
-
-📝 FUNCIONES PRINCIPALES:
-- getRandomCuriosity() - Obtiene una curiosidad aleatoria
-- getCuriositiesByCategory(category) - Curiosidades por categoría
-- getCuriositiesByDifficulty(difficulty) - Filtrar por dificultad
-- searchCuriosities(keyword) - Buscar por palabra clave
-- getContextualCuriosity(gameState) - Curiosidad contextual al juego
-
-📊 CATEGORÍAS DISPONIBLES:
-- fundamental: Física fundamental y constantes universales
-- electromagnetism: Electricidad, magnetismo y campos
-- thermodynamics: Temperatura, calor y entropía
-- waves: Ondas, sonido y vibraciones
-- astronomy: Espacio, estrellas y cosmología
-- quantum: Mecánica cuántica y física de partículas
-- mechanics: Movimiento, fuerzas y mecánica clásica
-- optics: Luz, óptica y fenómenos visuales
-- earth_physics: Física de la Tierra y geofísica
-
-⭐ NIVELES DE DIFICULTAD:
-1 - Conceptos básicos, accesibles para principiantes
-2 - Nivel intermedio, requiere conocimientos previos
-3 - Avanzado, conceptos complejos y matemáticas
-
-🎮 INTEGRACIÓN CON EL JUEGO:
-- Se llama automáticamente desde game.js
-- getContextualCuriosity() adapta el contenido al progreso del jugador
-- Las curiosidades aparecen al colisionar con meteoritos
-
-🧮 SOPORTE PARA MATHJAX:
-- Usar $ para fórmulas en línea: $E = mc^2$
-- Usar $ para fórmulas centradas: $F = ma$
-- Se renderiza automáticamente en el juego
-
-📊 EJEMPLO DE USO:
-```javascript
-// Obtener curiosidad aleatoria
-const curiosity = getRandomCuriosity();
-console.log(curiosity.title, curiosity.content);
-
-// Buscar curiosidades sobre Einstein
-const einsteinFacts = searchCuriosities('Einstein');
-
-// Obtener estadísticas
-const stats = getCuriosityStats();
-console.log(`Total: ${stats.totalCuriosities} curiosidades`);
-```
-*/
-
-console.log('🧠 curiosities.js cargado completamente');
-console.log('📚 Sistema de curiosidades listo para el juego');
+console.log('🧠 curiosities.js v2.1 cargado completamente - MEJORADO');
+console.log('🎯 Funciones optimizadas para mayor visibilidad en el juego');
 
 // ================================================
-// 🏁 FIN DEL ARCHIVO CURIOSITIES.JS
+// 🏁 FIN DEL ARCHIVO CURIOSITIES.JS MEJORADO
 // ================================================

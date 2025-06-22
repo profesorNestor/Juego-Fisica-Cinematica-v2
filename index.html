@@ -2,618 +2,496 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <!-- 📱 Meta viewport mejorado - será actualizado dinámicamente por OrientationManager -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    
-    <!-- 🎨 Configuración para PWA y mejor experiencia móvil -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0a0a1f">
     
-    <title>Academia Espacial: Física Interactiva v15 📐🧮</title>
+    <title>Academia Espacial 2.0 - Física Cuántica Interactiva</title>
     
-    <!-- 🎨 LIBRERÍAS EXTERNAS -->
+    <!-- Fuentes Futuristas -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS para utilidades rápidas -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@400;600&family=Exo+2:wght@300;400;600;800&display=swap" rel="stylesheet">
     
-    <!-- 📁 ARCHIVOS LOCALES -->
+    <!-- Iconos Modernos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Estilos -->
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="orientation-styles.css">
     
-    <!-- 🎯 Preload de archivos críticos -->
-    <link rel="preload" href="orientation-manager.js" as="script">
-    <link rel="preload" href="questions.js" as="script">
-    <link rel="preload" href="game.js" as="script">
-    
-    <!-- 🔧 CONFIGURACIÓN MATHJAX MEJORADA -->
+    <!-- MathJax Configuración -->
     <script>
-        // 🧮 Configuración MathJax optimizada para modales
         window.MathJax = {
             tex: {
-                // 🔧 Delimitadores mejorados para ecuaciones
-                inlineMath: [[', '], ['\\(', '\\)']],
-                displayMath: [['$', '$'], ['\\[', '\\]']],
-                
-                // 🔧 Procesar caracteres de escape correctamente
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
                 processEscapes: true,
-                processEnvironments: true,
-                processRefs: true,
-                
-                // 🔧 Paquetes adicionales para mejor soporte
-                packages: ['base', 'ams', 'noerrors', 'noundefined', 'color', 'boldsymbol']
+                processEnvironments: true
             },
-            
-            // 🔧 Configuraciones adicionales
             options: {
-                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
-                processHtmlClass: 'tex2jax_process',
-                ignoreHtmlClass: 'tex2jax_ignore',
-                renderActions: {
-                    // 🔧 Añadir clases CSS después del renderizado
-                    addMenu: [0, '', ''],
-                    checkLoading: [1, '', ''],
-                    compile: [2, 'Compile', 'compile'],
-                    metrics: [3, 'Metrics', 'getMetrics'],
-                    typeset: [4, 'Typeset', 'typeset'],
-                    update: [5, 'Update', 'update'],
-                    addClasses: [10, '', function (doc) {
-                        // Añadir clases CSS personalizadas a elementos MathJax
-                        const elements = doc.math.querySelectorAll('.MathJax');
-                        elements.forEach(el => {
-                            el.style.color = '#e0fbfc';
-                            el.style.fontSize = '1.1em';
-                        });
-                    }]
-                }
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
             },
-            
-            // 🔧 Configuración de inicio mejorada
             startup: {
                 ready: () => {
-                    console.log('✅ MathJax configurado correctamente para modales');
+                    console.log('✅ MathJax 3 está listo');
                     MathJax.startup.defaultReady();
-                    
-                    // 🔧 Inicializar nuestro sistema cuando MathJax esté listo
-                    if (window.mathRenderSystem) {
-                        window.mathRenderSystem.initialize();
-                    }
-                    
-                    // 🔧 Configurar eventos globales para re-renderizado
-                    document.addEventListener('modalOpened', function(e) {
-                        setTimeout(() => {
-                            if (window.mathRenderSystem) {
-                                window.mathRenderSystem.queueRender(e.detail.element, 100);
-                            }
-                        }, 150);
-                    });
                 }
-            },
-            
-            // 🔧 Configuración de renderizado CHTML
-            chtml: {
-                scale: 1.1,                    // Escala ligeramente mayor
-                minScale: 0.5,                 // Escala mínima
-                matchFontHeight: false,        // No intentar coincidir altura de fuente
-                displayAlign: 'center',        // Alineación centrada para ecuaciones display
-                displayIndent: '0',            // Sin indentación
-                fontURL: 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/output/chtml/fonts/woff-v2'
-            },
-            
-            // 🔧 Configuración SVG alternativa (si se prefiere)
-            svg: {
-                scale: 1.1,
-                minScale: 0.5,
-                fontCache: 'local',
-                displayAlign: 'center',
-                displayIndent: '0'
             }
-        };
-        
-        // 🔧 FUNCIÓN PARA RENDERIZAR MATHJAX MANUALMENTE
-        window.renderMathJax = async function(element = document.body) {
-            if (!window.MathJax) {
-                console.warn('⚠️ MathJax no está disponible');
-                return;
-            }
-            
-            try {
-                await MathJax.startup.promise;
-                MathJax.typesetClear([element]);
-                await MathJax.typesetPromise([element]);
-                console.log('✅ MathJax renderizado manualmente');
-            } catch (error) {
-                console.error('❌ Error renderizando MathJax:', error);
-            }
-        };
-        
-        // 🔧 FUNCIÓN DE DEBUGGING PARA MATHJAX
-        window.debugMathJax = function() {
-            console.log('🔍 Estado de MathJax:', {
-                loaded: !!window.MathJax,
-                ready: window.MathJax?.startup?.ready,
-                version: window.MathJax?.version,
-                config: window.MathJax?.config
-            });
         };
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" id="MathJax-script"></script>
 </head>
 
-<body>
-    <!-- 🚀 CONTENEDOR PRINCIPAL DEL JUEGO -->
+<body class="cosmic-body">
+    <!-- Fondo Animado de Partículas -->
+    <div class="cosmic-background">
+        <div class="stars-layer-1"></div>
+        <div class="stars-layer-2"></div>
+        <div class="stars-layer-3"></div>
+        <div class="nebula-effect"></div>
+    </div>
+
+    <!-- Contenedor Principal del Juego -->
     <div class="game-wrapper" id="gameWrapper">
         
-        <!-- 📊 BARRA SUPERIOR - ESTADÍSTICAS -->
-        <div class="stats-bar">
-            <div class="stat"><span>Nivel:</span><span id="level" class="font-bold">1</span></div>
-            <div class="stat"><span>Vidas:</span><div class="lives-container" id="livesContainer"></div></div>
-            <div class="stat"><span>Puntos:</span><span id="score" class="font-bold">0</span></div>
-            <div class="stat">
-                <span>Progreso:</span>
-                <span id="progress" class="font-bold">0/10</span>
-                <div class="progress-bar w-16 md:w-20"><div id="progressFill" class="progress-fill"></div></div>
-            </div>
-            <div class="stat"><span>Nota:</span><span id="grade" class="font-bold">0.0</span><span class="text-yellow-400">⭐</span></div>
-            <div class="stat"><span>Tema:</span><span id="currentTopic" class="font-bold">Magnitudes</span></div>
-            
-            <!-- 📱 Indicador de orientación (solo móvil) -->
-            <div class="stat mobile-only">
-                <span id="orientationIndicator" class="text-xs opacity-75">📱</span>
+        <!-- Panel Superior de Estadísticas -->
+        <div class="stats-panel glass-panel" id="statsPanel">
+            <div class="stats-grid">
+                <!-- Nivel -->
+                <div class="stat-card" data-stat="level">
+                    <div class="stat-icon">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-label">NIVEL</div>
+                        <div class="stat-value" id="level">1</div>
+                    </div>
+                    <div class="stat-glow"></div>
+                </div>
+
+                <!-- Vidas -->
+                <div class="stat-card" data-stat="lives">
+                    <div class="stat-icon pulse-animation">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-label">VIDAS</div>
+                        <div class="stat-value">
+                            <div class="lives-container" id="livesContainer"></div>
+                        </div>
+                    </div>
+                    <div class="stat-glow"></div>
+                </div>
+
+                <!-- Puntuación -->
+                <div class="stat-card" data-stat="score">
+                    <div class="stat-icon">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-label">PUNTOS</div>
+                        <div class="stat-value" id="score">0</div>
+                    </div>
+                    <div class="stat-glow"></div>
+                </div>
+
+                <!-- Progreso -->
+                <div class="stat-card" data-stat="progress">
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-label">PROGRESO</div>
+                        <div class="stat-value" id="progress">0/10</div>
+                        <div class="progress-bar-modern">
+                            <div class="progress-fill-modern" id="progressFill"></div>
+                            <div class="progress-glow"></div>
+                        </div>
+                    </div>
+                    <div class="stat-glow"></div>
+                </div>
+
+                <!-- Calificación -->
+                <div class="stat-card" data-stat="grade">
+                    <div class="stat-icon">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-label">NOTA</div>
+                        <div class="stat-value">
+                            <span id="grade">0.0</span>
+                            <span class="grade-stars">⭐</span>
+                        </div>
+                    </div>
+                    <div class="stat-glow"></div>
+                </div>
+
+                <!-- Tema Actual -->
+                <div class="stat-card" data-stat="topic">
+                    <div class="stat-icon">
+                        <i class="fas fa-atom"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-label">TEMA</div>
+                        <div class="stat-value" id="currentTopic">Magnitudes</div>
+                    </div>
+                    <div class="stat-glow"></div>
+                </div>
             </div>
         </div>
 
-        <!-- 🎮 CANVAS DEL JUEGO -->
-        <canvas id="gameCanvas"></canvas>
-
-        <!-- 🎛️ PANEL DE CONTROLES -->
-        <div class="controls-container">
-            <div class="control-group" style="width: 100%;">
-                <label class="font-bold text-sm text-center w-full mb-2">SELECCIONAR TEMAS DE FÍSICA</label>
-                <div class="topic-switcher">
-                    <input type="checkbox" id="topicMagnitudes" name="gameTopics" value="magnitudes" checked>
-                    <label for="topicMagnitudes">Magnitudes</label>
-                    
-                    <input type="checkbox" id="topicSI" name="gameTopics" value="si">
-                    <label for="topicSI">Sistema SI</label>
-                    
-                    <input type="checkbox" id="topicCinematica" name="gameTopics" value="cinematica">
-                    <label for="topicCinematica">Cinemática</label>
-                    
-                    <input type="checkbox" id="topicMRU" name="gameTopics" value="mru">
-                    <label for="topicMRU">MRU</label>
-                    
-                    <input type="checkbox" id="topicMRUA" name="gameTopics" value="mrua">
-                    <label for="topicMRUA">MRUA</label>
-                    
-                    <input type="checkbox" id="topicMCU" name="gameTopics" value="mcu">
-                    <label for="topicMCU">MCU</label>
-                    
-                    <input type="checkbox" id="topicGravedad" name="gameTopics" value="gravedad">
-                    <label for="topicGravedad">Mov. Vertical</label>
-                    
-                    <input type="checkbox" id="topicParabolico" name="gameTopics" value="parabolico">
-                    <label for="topicParabolico">Mov. Parabólico</label>
-                </div>
-            </div>
-            
-            <div class="flex flex-wrap gap-3 md:gap-4 items-center justify-center w-full">
-                <div class="control-group">
-                    <label for="levelSelect" class="font-bold">Nivel:</label>
-                    <select id="levelSelect" class="bg-gray-800 text-white border border-cyan-400 rounded px-2 py-1 md:px-3 md:py-2">
-                        <option value="1">1 (10)</option>
-                        <option value="2">2 (20)</option>
-                        <option value="3">3 (30)</option>
-                    </select>
-                </div>
-                
-                <button id="startButton" class="game-button btn-success">
-                    <span class="btn-icon">🚀</span>
-                    <span id="startButtonText" class="btn-text">Lanzar</span>
-                </button>
-                
-                <button id="pauseButton" class="game-button btn-warning" disabled>
-                    <span class="btn-icon">⏸️</span>
-                    <span class="btn-text">Pausa</span>
-                </button>
-                
-                <button id="soundButton" class="game-button">
-                    <span class="btn-icon">🔊</span>
-                    <span class="btn-text">Sonido</span>
-                </button>
-                
-                <!-- 📱 Botón de pantalla completa (móviles) -->
-                <button id="fullscreenButton" class="game-button mobile-only">
-                    <span class="btn-icon">📺</span>
-                    <span class="btn-text">Pantalla</span>
-                </button>
-                
-                <button id="helpButton" class="game-button">
-                    <span class="btn-icon">❓</span>
-                    <span class="btn-text">Ayuda</span>
-                </button>
-                
-                <button id="resetButton" class="game-button">
-                    <span class="btn-icon">🔄</span>
-                    <span class="btn-text">Reiniciar</span>
-                </button>
-                
-                <!-- 📐 El botón de orientación se agregará dinámicamente -->
-            </div>
-            
-            <!-- 📱 Información de orientación para debug (solo desarrollo) -->
-            <div id="orientationDebug" class="debug-orientation" style="display: none;"></div>
+        <!-- Canvas del Juego -->
+        <div class="canvas-container">
+            <canvas id="gameCanvas" class="game-canvas"></canvas>
+            <div class="canvas-overlay"></div>
         </div>
-        
-        <!-- 👨‍🚀 PIE DE PÁGINA -->
-        <footer class="galactic-footer">
-            <div id="footer-author" class="footer-author">
-                <span class="desktop-only">Autor: Msc Néstor Fabio Montoya Palacios</span>
-                <span class="mobile-only">📐 Academia Espacial v15</span>
+
+        <!-- Panel de Control Futurista -->
+        <div class="control-panel glass-panel" id="controlPanel">
+            <!-- Selector de Temas -->
+            <div class="topic-selector">
+                <h3 class="section-title">
+                    <i class="fas fa-microscope"></i>
+                    TEMAS DE FÍSICA
+                </h3>
+                <div class="topics-grid">
+                    <div class="topic-card">
+                        <input type="checkbox" id="topicMagnitudes" name="gameTopics" value="magnitudes" checked>
+                        <label for="topicMagnitudes" class="topic-label">
+                            <i class="fas fa-ruler"></i>
+                            <span>Magnitudes</span>
+                            <div class="topic-glow"></div>
+                        </label>
+                    </div>
+                    
+                    <div class="topic-card">
+                        <input type="checkbox" id="topicSI" name="gameTopics" value="si">
+                        <label for="topicSI" class="topic-label">
+                            <i class="fas fa-weight"></i>
+                            <span>Sistema SI</span>
+                            <div class="topic-glow"></div>
+                        </label>
+                    </div>
+                    
+                    <div class="topic-card">
+                        <input type="checkbox" id="topicCinematica" name="gameTopics" value="cinematica">
+                        <label for="topicCinematica" class="topic-label">
+                            <i class="fas fa-route"></i>
+                            <span>Cinemática</span>
+                            <div class="topic-glow"></div>
+                        </label>
+                    </div>
+                    
+                    <div class="topic-card">
+                        <input type="checkbox" id="topicMRU" name="gameTopics" value="mru">
+                        <label for="topicMRU" class="topic-label">
+                            <i class="fas fa-arrow-right"></i>
+                            <span>MRU</span>
+                            <div class="topic-glow"></div>
+                        </label>
+                    </div>
+                    
+                    <div class="topic-card">
+                        <input type="checkbox" id="topicMRUA" name="gameTopics" value="mrua">
+                        <label for="topicMRUA" class="topic-label">
+                            <i class="fas fa-forward"></i>
+                            <span>MRUA</span>
+                            <div class="topic-glow"></div>
+                        </label>
+                    </div>
+                    
+                    <div class="topic-card">
+                        <input type="checkbox" id="topicMCU" name="gameTopics" value="mcu">
+                        <label for="topicMCU" class="topic-label">
+                            <i class="fas fa-sync"></i>
+                            <span>MCU</span>
+                            <div class="topic-glow"></div>
+                        </label>
+                    </div>
+                    
+                    <div class="topic-card">
+                        <input type="checkbox" id="topicGravedad" name="gameTopics" value="gravedad">
+                        <label for="topicGravedad" class="topic-label">
+                            <i class="fas fa-magnet"></i>
+                            <span>Gravedad</span>
+                            <div class="topic-glow"></div>
+                        </label>
+                    </div>
+                    
+                    <div class="topic-card">
+                        <input type="checkbox" id="topicParabolico" name="gameTopics" value="parabolico">
+                        <label for="topicParabolico" class="topic-label">
+                            <i class="fas fa-bezier-curve"></i>
+                            <span>Parabólico</span>
+                            <div class="topic-glow"></div>
+                        </label>
+                    </div>
+                </div>
             </div>
-            <div id="footer-ship">🛸</div>
+
+            <!-- Controles de Juego -->
+            <div class="game-controls">
+                <div class="controls-grid">
+                    <!-- Selector de Nivel -->
+                    <div class="control-item">
+                        <label for="levelSelect" class="control-label">
+                            <i class="fas fa-layer-group"></i>
+                            NIVEL
+                        </label>
+                        <select id="levelSelect" class="futuristic-select">
+                            <option value="1">Cadete (10)</option>
+                            <option value="2">Piloto (20)</option>
+                            <option value="3">Comandante (30)</option>
+                        </select>
+                    </div>
+
+                    <!-- Botones de Acción -->
+                    <div class="action-buttons">
+                        <button id="startButton" class="quantum-button primary">
+                            <span class="button-icon">🚀</span>
+                            <span id="startButtonText" class="button-text">LANZAR</span>
+                            <div class="button-glow"></div>
+                        </button>
+                        
+                        <button id="pauseButton" class="quantum-button secondary" disabled>
+                            <span class="button-icon">⏸️</span>
+                            <span class="button-text">PAUSA</span>
+                            <div class="button-glow"></div>
+                        </button>
+                        
+                        <button id="soundButton" class="quantum-button accent">
+                            <span class="button-icon">🔊</span>
+                            <span class="button-text">SONIDO</span>
+                            <div class="button-glow"></div>
+                        </button>
+                        
+                        <button id="helpButton" class="quantum-button info">
+                            <span class="button-icon">❓</span>
+                            <span class="button-text">AYUDA</span>
+                            <div class="button-glow"></div>
+                        </button>
+                        
+                        <button id="resetButton" class="quantum-button danger">
+                            <span class="button-icon">🔄</span>
+                            <span class="button-text">REINICIAR</span>
+                            <div class="button-glow"></div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Futurista -->
+        <footer class="quantum-footer">
+            <div class="footer-content">
+                <div id="footer-author" class="footer-author">
+                    <span class="author-prefix">DESARROLLADO POR</span>
+                    <span class="author-name">MSC NÉSTOR FABIO MONTOYA PALACIOS</span>
+                </div>
+                <div class="footer-particles">
+                    <div id="footer-ship" class="footer-ship">🛸</div>
+                </div>
+            </div>
+            <div class="footer-wave"></div>
         </footer>
     </div>
-    
-    <!-- ================================================
-         🪟 MODALES DEL JUEGO - DISEÑO VERTICAL OPTIMIZADO
-         ================================================ -->
-    
-    <!-- 📝 Modal de Preguntas - SIEMPRE VERTICAL -->
-    <div id="questionModal" class="modal">
-        <div class="modal-content">
-            <h2 class="text-center">🎯 Desafío de Física</h2>
+
+    <!-- Modal de Pregunta Ultra Moderno -->
+    <div id="questionModal" class="modal quantum-modal" style="display: none;">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <i class="fas fa-brain"></i>
+                    DESAFÍO CUÁNTICO
+                </h2>
+                <div class="modal-decorations">
+                    <div class="decoration-line"></div>
+                    <div class="decoration-dot"></div>
+                    <div class="decoration-line"></div>
+                </div>
+            </div>
             
-            <!-- 📊 Metadatos de la pregunta -->
+            <!-- Metadatos de la Pregunta -->
             <div id="questionData" class="question-metadata"></div>
             
-            <!-- 📝 Contenido de la pregunta -->
+            <!-- Contenido de la Pregunta -->
             <div id="questionText" class="question-content"></div>
             
-            <!-- 🎯 Opciones de respuesta -->
+            <!-- Contenedor de Opciones -->
             <div id="optionsContainer" class="options-container"></div>
             
-            <!-- ✅ Botón de confirmar -->
-            <button id="answerButton" class="game-button btn-success" disabled>
-                <span class="btn-icon">✅</span>
-                <span class="btn-text">Confirmar Respuesta</span>
+            <!-- Botón de Respuesta -->
+            <button id="answerButton" class="quantum-button primary large" disabled>
+                <span class="button-icon">✅</span>
+                <span class="button-text">CONFIRMAR RESPUESTA</span>
+                <div class="button-glow"></div>
             </button>
         </div>
     </div>
-    
-    <!-- 💬 Modal de Feedback - PARA RESPUESTAS Y CURIOSIDADES -->
-    <div id="feedbackModal" class="modal">
-        <div class="modal-content">
-            <h2 id="feedbackTitle" class="text-center"></h2>
+
+    <!-- Modal de Feedback -->
+    <div id="feedbackModal" class="modal quantum-modal" style="display: none;">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h2 id="feedbackTitle" class="modal-title"></h2>
+                <div class="modal-decorations">
+                    <div class="decoration-line"></div>
+                    <div class="decoration-dot"></div>
+                    <div class="decoration-line"></div>
+                </div>
+            </div>
+            
             <div id="feedbackText" class="feedback-text"></div>
-            <div id="solution-container" style="display: none;" class="solution-container"></div>
-            <button id="nextButton" class="game-button btn-success">
-                <span class="btn-icon">▶️</span>
-                <span class="btn-text">Continuar</span>
-            </button>
-        </div>
-    </div>
-    
-    <!-- ❓ Modal de Ayuda -->
-    <div id="helpModal" class="modal">
-        <div class="modal-content">
-            <h2>📚 Manual del Cadete</h2>
-            <div class="text-left space-y-4 text-sm">
-                <h3 class="text-cyan-400 font-bold text-lg mb-2">🎯 Misión</h3>
-                <p>Pilota tu nave 🚀 y colisiona con meteoritos ☄️. ¡Responde preguntas de física para dominar el universo!</p>
-                
-                <h3 class="text-cyan-400 font-bold text-lg mb-2">🎮 Controles</h3>
-                <ul class="list-disc list-inside space-y-1 ml-4">
-                    <li><strong>Mouse/Dedo:</strong> Mueve la nave</li>
-                    <li><strong>Colisiones:</strong> Toca meteoritos para recibir preguntas</li>
-                    <li><strong>Temas:</strong> Elige uno o varios temas de física</li>
-                    <li><strong>Sonido:</strong> Activa/desactiva con 🔊</li>
-                    <li class="mobile-only"><strong>📱 Orientación:</strong> Gira el dispositivo para mejor experiencia</li>
-                    <li class="mobile-only"><strong>📺 Pantalla completa:</strong> Para juego inmersivo</li>
-                </ul>
-                
-                <h3 class="text-cyan-400 font-bold text-lg mb-2">🧮 Matemáticas</h3>
-                <ul class="list-disc list-inside space-y-1 ml-4">
-                    <li>Las fórmulas se muestran con notación matemática</li>
-                    <li>Los datos aparecen claramente separados</li>
-                    <li>Las explicaciones incluyen cálculos paso a paso</li>
-                </ul>
-                
-                <h3 class="text-cyan-400 font-bold text-lg mb-2 mobile-only">📱 Consejos Móvil</h3>
-                <ul class="list-disc list-inside space-y-1 ml-4 mobile-only">
-                    <li>Usa orientación horizontal para mejor visibilidad del canvas</li>
-                    <li>Los modales siempre aparecen en formato vertical para mejor lectura</li>
-                    <li>Activa pantalla completa para máxima inmersión</li>
-                    <li>El juego se adapta automáticamente a tu pantalla</li>
-                </ul>
-            </div>
-            <button id="closeHelp" class="game-button mt-6">
-                <span class="btn-icon">🚀</span>
-                <span class="btn-text">¡Entendido!</span>
-            </button>
-        </div>
-    </div>
-    
-    <!-- 🏆 Modal de Subida de Nivel -->
-    <div id="levelUpModal" class="modal">
-        <div class="modal-content">
-            <h2 id="levelUpTitle" class="text-2xl text-center"></h2>
-            <p id="levelUpText" class="text-lg mb-6 text-center"></p>
-            <div id="levelUpStats" class="mb-6 p-4 bg-gray-800 rounded"></div>
-            <button id="nextLevelButton" class="game-button btn-success">
-                <span class="btn-icon">🚀</span>
-                <span class="btn-text">¡Siguiente Nivel!</span>
-            </button>
-        </div>
-    </div>
-    
-    <!-- ⏸️ Modal de Pausa -->
-    <div id="pauseModal" class="modal">
-        <div class="modal-content">
-            <h2>⏸️ Juego Pausado</h2>
-            <p class="text-lg mb-6 text-center">El tiempo se ha detenido en el cosmos.</p>
-            <div class="space-y-4">
-                <button id="resumeButton" class="game-button btn-success w-full">
-                    <span class="btn-icon">▶️</span>
-                    <span class="btn-text">Reanudar</span>
-                </button>
-                <button id="restartFromPause" class="game-button w-full">
-                    <span class="btn-icon">🔄</span>
-                    <span class="btn-text">Reiniciar</span>
-                </button>
-                <!-- 📱 Opciones adicionales para móviles -->
-                <div class="mobile-only space-y-2">
-                    <button id="fullscreenFromPause" class="game-button w-full">
-                        <span class="btn-icon">📺</span>
-                        <span class="btn-text">Pantalla Completa</span>
-                    </button>
-                    <button id="orientationFromPause" class="game-button w-full">
-                        <span class="btn-icon">📱</span>
-                        <span class="btn-text">Rotar Pantalla</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- 📊 Modal de Estadísticas Finales -->
-    <div id="finalStatsModal" class="modal">
-        <div class="modal-content">
-            <h2 id="finalStatsTitle" class="text-center"></h2>
-            <div id="finalStatsContent" class="text-left space-y-3 mt-4"></div>
-            <button id="restartGameButton" class="game-button btn-success mt-6">
-                <span class="btn-icon">🚀</span>
-                <span class="btn-text">Jugar de Nuevo</span>
+            <div id="solution-container" class="solution-container" style="display: none;"></div>
+            
+            <button id="nextButton" class="quantum-button primary large">
+                <span class="button-icon">▶️</span>
+                <span class="button-text">CONTINUAR</span>
+                <div class="button-glow"></div>
             </button>
         </div>
     </div>
 
-    <!-- 📐 Modal de Orientación (Opcional) -->
-    <div id="orientationModal" class="modal">
-        <div class="modal-content">
-            <h2>📱 Configuración de Orientación</h2>
-            <div class="text-left space-y-4 text-sm">
-                <p>Tu dispositivo: <span id="deviceTypeInfo" class="font-bold text-cyan-400"></span></p>
-                <p>Orientación actual: <span id="currentOrientationInfo" class="font-bold text-cyan-400"></span></p>
-                
-                <div class="bg-gray-800 p-4 rounded">
-                    <h4 class="text-cyan-400 font-bold mb-2">💡 Recomendación:</h4>
-                    <p id="orientationRecommendation">Para el canvas, usa orientación horizontal. Los modales siempre aparecen verticales para mejor lectura.</p>
-                </div>
-                
-                <div class="space-y-2">
-                    <button id="lockLandscape" class="game-button w-full">
-                        <span class="btn-icon">📱➡️</span>
-                        <span class="btn-text">Bloquear Horizontal</span>
-                    </button>
-                    <button id="lockPortrait" class="game-button w-full">
-                        <span class="btn-icon">📱⬆️</span>
-                        <span class="btn-text">Bloquear Vertical</span>
-                    </button>
-                    <button id="unlockOrientation" class="game-button w-full">
-                        <span class="btn-icon">🔓</span>
-                        <span class="btn-text">Desbloquear</span>
-                    </button>
+    <!-- Modal de Ayuda -->
+    <div id="helpModal" class="modal quantum-modal" style="display: none;">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <i class="fas fa-book"></i>
+                    MANUAL DEL CADETE ESPACIAL
+                </h2>
+                <div class="modal-decorations">
+                    <div class="decoration-line"></div>
+                    <div class="decoration-dot"></div>
+                    <div class="decoration-line"></div>
                 </div>
             </div>
-            <button id="closeOrientationModal" class="game-button mt-6">
-                <span class="btn-icon">✅</span>
-                <span class="btn-text">Entendido</span>
+            
+            <div class="help-content">
+                <div class="help-section">
+                    <h3><i class="fas fa-crosshairs"></i> MISIÓN</h3>
+                    <p>Pilota tu nave cuántica y colisiona con objetos cósmicos para desbloquear desafíos de física. ¡Demuestra tu dominio del universo!</p>
+                </div>
+                
+                <div class="help-section">
+                    <h3><i class="fas fa-gamepad"></i> CONTROLES</h3>
+                    <ul class="help-list">
+                        <li><strong>Mouse/Táctil:</strong> Controla tu nave espacial</li>
+                        <li><strong>Colisiones:</strong> Activan preguntas de física</li>
+                        <li><strong>Temas:</strong> Selecciona múltiples áreas de estudio</li>
+                        <li><strong>Niveles:</strong> Aumenta la dificultad progresivamente</li>
+                    </ul>
+                </div>
+                
+                <div class="help-section">
+                    <h3><i class="fas fa-calculator"></i> MATEMÁTICAS</h3>
+                    <p>Las ecuaciones se renderizán con notación matemática profesional. Los cálculos incluyen explicaciones paso a paso.</p>
+                </div>
+            </div>
+            
+            <button id="closeHelp" class="quantum-button primary">
+                <span class="button-icon">🚀</span>
+                <span class="button-text">¡ENTENDIDO!</span>
+                <div class="button-glow"></div>
             </button>
         </div>
     </div>
 
-    <!-- ================================================
-         📜 SCRIPTS EN ORDEN CORRECTO
-         ================================================ -->
-    
-    <!-- 🧮 Script MathJax -->
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    
-    <script>
-        // 📱 Configuración adicional para móviles
-        document.addEventListener('DOMContentLoaded', function() {
-            // 🎯 Prevenir zoom accidental en iOS
-            document.addEventListener('gesturestart', function(e) {
-                e.preventDefault();
-            });
+    <!-- Modal de Nivel Completado -->
+    <div id="levelUpModal" class="modal quantum-modal" style="display: none;">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content glass-panel celebration">
+            <div class="modal-header">
+                <h2 id="levelUpTitle" class="modal-title">
+                    <i class="fas fa-medal"></i>
+                    ¡NIVEL COMPLETADO!
+                </h2>
+                <div class="modal-decorations">
+                    <div class="decoration-line"></div>
+                    <div class="decoration-dot"></div>
+                    <div class="decoration-line"></div>
+                </div>
+            </div>
             
-            // 📱 Mejorar el scroll en móviles
-            document.addEventListener('touchstart', function() {}, {passive: true});
-            document.addEventListener('touchmove', function() {}, {passive: true});
+            <p id="levelUpText" class="level-up-text"></p>
+            <div id="levelUpStats" class="level-stats glass-panel"></div>
             
-            // 🔧 Configurar indicador de orientación
-            function updateOrientationIndicator() {
-                const indicator = document.getElementById('orientationIndicator');
-                if (indicator && window.orientationManager) {
-                    const orientation = window.orientationManager.currentOrientation;
-                    indicator.textContent = orientation === 'landscape' ? '📱➡️' : '📱⬆️';
-                    indicator.title = `Orientación: ${orientation}`;
-                }
-            }
+            <button id="nextLevelButton" class="quantum-button primary large">
+                <span class="button-icon">🚀</span>
+                <span class="button-text">¡SIGUIENTE NIVEL!</span>
+                <div class="button-glow"></div>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal de Pausa -->
+    <div id="pauseModal" class="modal quantum-modal" style="display: none;">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <i class="fas fa-pause-circle"></i>
+                    JUEGO PAUSADO
+                </h2>
+                <div class="modal-decorations">
+                    <div class="decoration-line"></div>
+                    <div class="decoration-dot"></div>
+                    <div class="decoration-line"></div>
+                </div>
+            </div>
             
-            // 🎮 Configurar botón de pantalla completa
-            const fullscreenButton = document.getElementById('fullscreenButton');
-            if (fullscreenButton) {
-                fullscreenButton.addEventListener('click', function() {
-                    if (window.orientationManager) {
-                        if (document.fullscreenElement) {
-                            window.orientationManager.exitFullscreen();
-                            fullscreenButton.querySelector('.btn-icon').innerHTML = '📺';
-                        } else {
-                            window.orientationManager.requestFullscreen();
-                            fullscreenButton.querySelector('.btn-icon').innerHTML = '📱';
-                        }
-                    }
-                });
-            }
+            <p class="pause-text">El tiempo se ha detenido en el cosmos...</p>
             
-            // 🔄 Actualizar indicador cuando cambie la orientación
-            if (window.orientationManager) {
-                window.orientationManager.registerOrientationCallback(updateOrientationIndicator);
-            }
-            
-            // 🧪 Mostrar debug en desarrollo
-            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                const debugElement = document.getElementById('orientationDebug');
-                if (debugElement) {
-                    debugElement.style.display = 'block';
-                    
-                    function updateDebugInfo() {
-                        if (window.orientationManager) {
-                            const info = window.orientationManager.getScreenInfo();
-                            debugElement.innerHTML = `
-                                ${info.deviceType} | ${info.orientation}<br>
-                                ${info.dimensions.width}x${info.dimensions.height}<br>
-                                Ratio: ${info.dimensions.ratio}
-                            `;
-                        }
-                    }
-                    
-                    setInterval(updateDebugInfo, 1000);
-                }
-            }
-            
-            // 🔧 Configurar eventos personalizados para modales
-            document.addEventListener('modalOpened', function(e) {
-                console.log('📋 Modal abierto:', e.detail.modalId);
-            });
-            
-            // 🧮 Debug de MathJax en desarrollo
-            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                window.testMathJaxModal = function() {
-                    const modal = document.getElementById('questionModal');
-                    modal.querySelector('#questionText').innerHTML = 'Ecuación de prueba: $E = mc^2$ y $F = ma;
-                    modal.style.display = 'flex';
-                    setTimeout(() => {
-                        if (window.mathRenderSystem) {
-                            window.mathRenderSystem.queueRender(modal, 100);
-                        }
-                    }, 200);
-                };
+            <div class="pause-buttons">
+                <button id="resumeButton" class="quantum-button primary">
+                    <span class="button-icon">▶️</span>
+                    <span class="button-text">REANUDAR</span>
+                    <div class="button-glow"></div>
+                </button>
                 
-                console.log('🧪 Función de prueba disponible: testMathJaxModal()');
-            }
-        });
-    </script>
-    
-    <!-- 📐 Sistema de orientación (PRIMERO) -->
+                <button id="restartFromPause" class="quantum-button danger">
+                    <span class="button-icon">🔄</span>
+                    <span class="button-text">REINICIAR</span>
+                    <div class="button-glow"></div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Estadísticas Finales -->
+    <div id="finalStatsModal" class="modal quantum-modal" style="display: none;">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h2 id="finalStatsTitle" class="modal-title"></h2>
+                <div class="modal-decorations">
+                    <div class="decoration-line"></div>
+                    <div class="decoration-dot"></div>
+                    <div class="decoration-line"></div>
+                </div>
+            </div>
+            
+            <div id="finalStatsContent" class="final-stats-content"></div>
+            
+            <button id="restartGameButton" class="quantum-button primary large">
+                <span class="button-icon">🚀</span>
+                <span class="button-text">JUGAR DE NUEVO</span>
+                <div class="button-glow"></div>
+            </button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
     <script src="orientation-manager.js"></script>
-    
-    <!-- 📚 Base de datos del juego -->
     <script src="questions.js"></script>
     <script src="curiosities.js"></script>
-    
-    <!-- 🎮 Motor principal (con integración de orientación y MathJax) -->
     <script src="game.js"></script>
-    
-    <!-- 📐 Script de integración final -->
-    <script>
-        // 🎯 Integración final cuando todo esté cargado
-        window.addEventListener('load', function() {
-            console.log('🎮 Página completamente cargada');
-            
-            // ⏱️ Pequeño delay para asegurar que todo esté inicializado
-            setTimeout(function() {
-                // 🔗 Conectar OrientationManager con el juego
-                if (window.orientationManager && window.setupOrientationIntegration) {
-                    window.setupOrientationIntegration();
-                }
-                
-                // 📱 Configuración inicial
-                if (window.orientationManager) {
-                    console.log('📐 Sistema de orientación totalmente integrado');
-                    
-                    // 🎯 Aplicar configuración inicial
-                    if (window.updateConfigForOrientation) {
-                        window.updateConfigForOrientation();
-                    }
-                }
-                
-                // 🧮 Verificar estado de MathJax
-                if (window.MathJax) {
-                    console.log('🧮 MathJax cargado correctamente');
-                    
-                    // 🔧 Configurar evento para re-renderizado automático
-                    const observer = new MutationObserver(function(mutations) {
-                        mutations.forEach(function(mutation) {
-                            if (mutation.type === 'childList') {
-                                const target = mutation.target;
-                                if (target.classList && target.classList.contains('modal-content')) {
-                                    // Modal content changed, re-render MathJax
-                                    setTimeout(() => {
-                                        if (window.mathRenderSystem) {
-                                            window.mathRenderSystem.queueRender(target, 100);
-                                        }
-                                    }, 50);
-                                }
-                            }
-                        });
-                    });
-                    
-                    // Observar cambios en modales
-                    document.querySelectorAll('.modal-content').forEach(modal => {
-                        observer.observe(modal, {
-                            childList: true,
-                            subtree: true
-                        });
-                    });
-                }
-                
-                console.log('✅ Academia Espacial v15 completamente inicializada');
-                
-            }, 500);
-        });
-        
-        // 🧪 Funciones de testing globales (solo en desarrollo)
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            window.testModal = function(modalId) {
-                const modal = document.getElementById(modalId);
-                if (modal) {
-                    modal.style.display = 'flex';
-                    // Disparar evento personalizado
-                    document.dispatchEvent(new CustomEvent('modalOpened', {
-                        detail: { modalId, element: modal }
-                    }));
-                }
-            };
-            
-            window.testAllMath = function() {
-                document.querySelectorAll('.modal').forEach(modal => {
-                    const content = modal.querySelector('.modal-content');
-                    if (content) {
-                        content.innerHTML += '<div>Prueba: $\\sqrt{x^2 + y^2} = z$</div>';
-                        if (window.mathRenderSystem) {
-                            window.mathRenderSystem.queueRender(content, 100);
-                        }
-                    }
-                });
-            };
-            
-            console.log('🧪 Funciones de testing disponibles:');
-            console.log('- testModal(modalId)');
-            console.log('- testAllMath()');
-            console.log('- debugMathJax()');
-        }
-    </script>
 </body>
 </html>
